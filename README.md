@@ -46,19 +46,3 @@ To use AI capabilities, you need an API key from a supported AI provider (e.g., 
    const API_KEY = 'your-api-key-here';
    ```
 4. Save the file and reload the extension.
-
-## Project Structure
-
-```
-├── manifest.json
-├── background.js
-├── content.js
-├── popup.html
-├── popup.js
-├── styles.css
-└── config.js
-```
-
-## License
-
-This project is licensed under the MIT License.
