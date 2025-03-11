@@ -10,6 +10,15 @@ This browser extension allows you to extract subtitles from YouTube videos and a
 - Sends subtitle text to an AI model for processing
 - Enables users to ask questions based on subtitle content
 
+## Team Members
+
+| Full Name              | Role in the Scrum Team | GitHub/GitLab Account                        |
+| ---------------------- | ---------------------- | -------------------------------------------- |
+| Mohammad Saber Mirzaei | Developer              | [GitHub](https://github.com/MohammadSaberMi) |
+| Mohammad Hossein Asadi | Developer              | [GitHub](https://github.com/IRI-MH-Asadi)    |
+| Amir Mohammad Soltani  | Developer              | [GitHub](https://github.com/)                |
+| Amir Mahdi Abdoli      | Product Owner          | [GitHub](https://github.com/AmirMahdiAbdoli) |
+
 ## Installation
 
 1. Clone this repository:
@@ -49,3 +58,7 @@ To use AI capabilities, you need an API key from a supported AI provider (e.g., 
 ├── styles.css
 └── config.js
 ```
+
+## License
+
+This project is licensed under the MIT License.
