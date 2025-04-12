@@ -23,7 +23,7 @@ This browser extension allows you to extract subtitles from YouTube videos and a
 
 1. Clone this repository:
    ```sh
-   git clone https://github.com/your-username/youtube-ai-extension.git
+   git clone https://github.com/MohammadSaberMi/ai-youtube-assistant.git
    ```
 2. Open your browser and go to `chrome://extensions/`.
 3. Enable `Developer mode`.
