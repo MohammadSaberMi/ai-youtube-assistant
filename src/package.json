@@ -1,0 +1,23 @@
+{
+  "name": "ai-youtube-assistant",
+  "version": "1.0.0",
+  "description": "YouTube caption extractor using yt-dlp",
+  "main": "src/index-yt-dlp.js",
+  "scripts": {
+    "start": "node src/index-yt-dlp.js",
+    "start:old": "node src/index.js",
+    "start:yt-dlp": "node src/index-yt-dlp.js",
+    "get-captions": "node src/cli-yt-dlp.js",
+    "setup": "node env-setup.js"
+  },
+  "dependencies": {
+    "youtube-sr": "^4.3.4",
+    "ytdl-core": "^4.11.5",
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "node-fetch": "^2.6.9",
+    "https-proxy-agent": "^5.0.1",
+    "socks-proxy-agent": "^7.0.0",
+    "multer": "^1.4.5-lts.1"
+  }
+} 
