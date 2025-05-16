@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Caption Extractor",
+  "version": "1.0",
+  "permissions": [
+    "activeTab",
+    "webRequest",
+    "https://*.youtube.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["content.js"]
+    }
+  ]
+}
