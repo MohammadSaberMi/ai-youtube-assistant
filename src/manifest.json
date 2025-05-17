@@ -1,16 +1,27 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Caption Extractor",
-  "version": "1.0",
+  "name": "YouTube AI Video Assistant",
+  "version": "0.1.0",
+  "description": "Chat about YouTube videos using their captions as context.",
   "permissions": [
     "activeTab",
-    "webRequest",
-    "https://*.youtube.com/*"
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://www.youtube.com/watch*"],
-      "js": ["content.js"]
+      "matches": ["*://*.youtube.com/watch*"],
+      "js": ["content_script.js"],
+      "css": ["style.css"]
     }
-  ]
+  ],
+  "action": {
+    "default_title": "YouTube AI Assistant (active on video pages)"
+  },
+  "icons": {
+ 
+      "128": "icon.png"
+  }
 }
