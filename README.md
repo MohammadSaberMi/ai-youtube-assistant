@@ -34,14 +34,4 @@ This browser extension allows you to extract subtitles from YouTube videos and a
 2. Click on the extension icon to extract subtitles.
 3. Enter your question and get an AI-generated response.
 
-## Configuration
 
-To use AI capabilities, you need an API key from a supported AI provider (e.g., OpenAI, Google AI):
-
-1. Get an API key.
-2. Open the `config.js` file.
-3. Add your API key:
-   ```js
-   const API_KEY = 'your-api-key-here';
-   ```
-4. Save the file and reload the extension.
