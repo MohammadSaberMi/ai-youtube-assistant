@@ -14,10 +14,9 @@ This browser extension allows you to extract subtitles from YouTube videos and a
 
 | Full Name              | Role in the Scrum Team | GitHub/GitLab Account                        |
 | ---------------------- | ---------------------- | -------------------------------------------- |
-| Mohammad Saber Mirzaei | Developer              | [GitHub](https://github.com/MohammadSaberMi) |
+| Mohammad Saber Mirzaei | Product Owner          | [GitHub](https://github.com/MohammadSaberMi) |
 | Mohammad Hossein Asadi | Scrum Master           | [GitHub](https://github.com/IRI-MH-Asadi)    |
 | Amir Mohammad Soltani  | Developer              | [GitHub](https://github.com/)                |
-| Amir Mahdi Abdoli      | Product Owner          | [GitHub](https://github.com/AmirMahdiAbdoli) |
 
 ## Installation
 
