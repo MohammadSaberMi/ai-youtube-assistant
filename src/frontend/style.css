@@ -1,11 +1,11 @@
-#youtube-ai-chat-container {
+/*#youtube-ai-chat-container {
   display: flex;
   flex-direction: column;
   width: 300px;
   max-height: 500px;
   background: #fff;
   border: 1px solid #ccc;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   margin: 10px;
   font-family: Arial, sans-serif;
 }
@@ -17,7 +17,8 @@
   font-weight: bold;
 }
 
-#youtube-ai-login-container, #youtube-ai-settings-container {
+#youtube-ai-login-container,
+#youtube-ai-settings-container {
   padding: 5px;
   display: flex;
   flex-wrap: wrap;
@@ -36,10 +37,18 @@
   border-radius: 3px;
 }
 
-.youtube-ai-chat-message.user { background: #e1f5fe; }
-.youtube-ai-chat-message.ai { background: #f5f5f5; }
-.youtube-ai-chat-message.info { background: #fff3e0; }
-.youtube-ai-chat-message.error { background: #ffebee; }
+.youtube-ai-chat-message.user {
+  background: #e1f5fe;
+}
+.youtube-ai-chat-message.ai {
+  background: #f5f5f5;
+}
+.youtube-ai-chat-message.info {
+  background: #fff3e0;
+}
+.youtube-ai-chat-message.error {
+  background: #ffebee;
+}
 
 #youtube-ai-chat-input-area {
   display: flex;
@@ -55,4 +64,269 @@
 button {
   padding: 5px 10px;
   cursor: pointer;
+}*/
+/* Overall Container */
+#youtube-ai-chat-container {
+  display: flex;
+  flex-direction: column;
+  width: 380px; /* Adjusted width to better match the image */
+  max-height: 550px; /* Slightly increased max-height */
+  background: #f0f2f5; /* Light grey background for the whole panel */
+  border-radius: 12px; /* Rounded corners */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Softer shadow */
+  margin: 15px; /* Increased margin for better spacing */
+  font-family: 'Roboto', Arial, sans-serif; /* Modern font */
+  color: #333;
+  overflow: hidden; /* Ensure content doesn't spill out of rounded corners */
+}
+
+/* Header */
+#youtube-ai-chat-header {
+  background: #ffffff; /* White background for header */
+  padding: 12px 15px;
+  font-size: 16px;
+  font-weight: 500; /* Medium font weight */
+  color: #0f0f0f; /* Darker text for prominence */
+  border-bottom: 1px solid #e0e0e0; /* Subtle separator */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+/* Header Icons (if applicable, assuming placeholder for now) */
+/* You might need to add specific classes to your header icons in the HTML */
+#youtube-ai-chat-header .icon-container {
+  display: flex;
+  gap: 8px;
+}
+
+#youtube-ai-chat-header .icon {
+  width: 24px;
+  height: 24px;
+  /* Add styles for your icons here, e.g., background-image or SVG */
+}
+
+/* Login and Settings Containers */
+#youtube-ai-login-container,
+#youtube-ai-settings-container {
+  padding: 10px 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px; /* Slightly increased gap for better spacing */
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Inputs (username, password, API key) */
+#youtube-ai-login-container input,
+#youtube-ai-settings-container input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  min-width: 120px; /* Ensure inputs don't become too small */
+}
+
+#youtube-ai-login-container input:focus,
+#youtube-ai-settings-container input:focus {
+  border-color: #0a66c2; /* Focus color */
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.2);
+}
+
+/* Select (Model selection) */
+#youtube-ai-settings-container select {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #ffffff;
+  cursor: pointer;
+  min-width: 120px;
+  appearance: none; /* Remove default arrow */
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%20197.6L146.2%2056.8%205.4%20197.6c-7.2%207.2-18.9%207.2-26.1%200-7.2-7.2-7.2-18.9%200-26.1l132.8-132.8c7.2-7.2%2018.9-7.2%2026.1%200l132.8%20132.8c7.2%207.2%207.2%2018.9%200%2026.1-7.2%207.2-18.9%207.2-26.1%200z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 10px;
+}
+
+/* Chat History */
+#youtube-ai-chat-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 15px; /* Consistent padding */
+  background-color: #ffffff; /* White background for chat history */
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Spacing between messages */
+}
+
+/* Individual Chat Messages */
+.youtube-ai-chat-message {
+  margin: 0; /* Reset default margin */
+  padding: 10px 15px;
+  border-radius: 18px; /* More rounded for speech bubble look */
+  max-width: 85%; /* Limit width of messages */
+  word-wrap: break-word; /* Ensure long words break */
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.youtube-ai-chat-message.user {
+  background: #e6f7ff; /* Light blue, similar to the image's input field */
+  align-self: flex-end; /* Align user messages to the right */
+  border-bottom-right-radius: 4px; /* Slightly less rounded on the bottom right for user */
+  color: #333;
+}
+.youtube-ai-chat-message.ai {
+  background: #f0f0f0; /* Light grey for AI messages */
+  align-self: flex-start; /* Align AI messages to the left */
+  border-bottom-left-radius: 4px; /* Slightly less rounded on the bottom left for AI */
+  color: #333;
+}
+.youtube-ai-chat-message.info {
+  background: #e9f7ef; /* Light green for info messages */
+  color: #28a745; /* Darker green text */
+  text-align: center;
+  align-self: center; /* Center info messages */
+  font-size: 13px;
+  font-style: italic;
+  padding: 6px 12px;
+}
+.youtube-ai-chat-message.error {
+  background: #ffe0e0; /* Light red for error messages */
+  color: #dc3545; /* Darker red text */
+  text-align: center;
+  align-self: center; /* Center error messages */
+  font-size: 13px;
+  font-weight: bold;
+  padding: 6px 12px;
+}
+
+/* Initial greeting message */
+.youtube-ai-chat-message.initial-greeting {
+  background: #e9f7ef; /* A softer background */
+  color: #4caf50; /* A friendly green color */
+  text-align: center;
+  margin: 15px auto; /* Center it with auto margins */
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: normal;
+  font-size: 14px;
+  max-width: 90%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Input Area */
+#youtube-ai-chat-input-area {
+  display: flex;
+  padding: 10px 15px;
+  gap: 8px; /* Space between input and buttons */
+  background-color: #ffffff;
+  border-top: 1px solid #e0e0e0; /* Separator */
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Chat Input Field */
+#youtube-ai-chat-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #c9c9c9; /* Softer border */
+  border-radius: 20px; /* Pill-shaped input */
+  font-size: 14px;
+  outline: none;
+  background-color: #f8f8f8; /* Slightly off-white input background */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#youtube-ai-chat-input:focus {
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.2); /* Softer focus glow */
+  background-color: #ffffff;
+}
+
+/* Buttons */
+button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 20px; /* Pill-shaped buttons */
+  background-color: #0a66c2; /* Primary blue color */
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+button:hover {
+  background-color: #0754a3; /* Darker blue on hover */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+  background-color: #05417e; /* Even darker on active */
+  transform: translateY(1px); /* Slight press effect */
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Specific button styling for the send button (if using a distinct icon as in the image) */
+#youtube-ai-chat-input-area #sendButton {
+  background-color: #4caf50; /* Green send button */
+  border-radius: 50%; /* Circular button for send icon */
+  width: 40px; /* Fixed size for circular button */
+  height: 40px;
+  padding: 0; /* Remove padding for icon */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px; /* Size for a potential arrow icon */
+  position: relative; /* For the arrow icon */
+}
+
+#youtube-ai-chat-input-area #sendButton::before {
+  content: '▶'; /* Unicode right arrow for send */
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1; /* Adjust line height for vertical alignment */
+}
+
+#youtube-ai-chat-input-area #sendButton:hover {
+  background-color: #45a049;
+}
+
+/* Optional: Styling for suggested prompts (if they were part of the initial design) */
+.suggested-prompts {
+  display: flex;
+  justify-content: center; /* Center the buttons */
+  flex-wrap: wrap;
+  gap: 8px; /* Space between buttons */
+  padding: 10px 15px;
+  background-color: #f0f2f5; /* Match container background */
+  border-top: 1px solid #e0e0e0; /* Separator */
+}
+
+.suggested-prompts button {
+  background-color: #e0e0e0; /* Lighter grey for suggested prompts */
+  color: #555;
+  padding: 8px 15px;
+  border-radius: 16px; /* Slightly less rounded than main buttons */
+  font-size: 13px;
+  box-shadow: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.suggested-prompts button:hover {
+  background-color: #d0d0d0;
+  color: #333;
 }
