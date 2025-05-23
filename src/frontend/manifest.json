@@ -5,23 +5,30 @@
   "description": "Chat about YouTube videos using their captions as context.",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "http://127.0.0.1:3000/*"
   ],
   "host_permissions": [
-    "*://*.youtube.com/*"
-  ],
-  "content_scripts": [
-    {
-      "matches": ["*://*.youtube.com/watch*"],
-      "js": ["content_script.js"],
-      "css": ["style.css"]
-    }
-  ],
+  "*://*.youtube.com/*",
+  "http://localhost:3000/*"
+],
+"content_scripts": [
+  {
+    "matches": [
+      "*://*.youtube.com/*"
+    ],
+    "js": [
+      "content_script.js"
+    ],
+    "css": [
+      "style.css"
+    ]
+  }
+],
   "action": {
     "default_title": "YouTube AI Assistant (active on video pages)"
   },
   "icons": {
- 
-      "128": "icon.png"
+    "128": "icon.png"
   }
 }
