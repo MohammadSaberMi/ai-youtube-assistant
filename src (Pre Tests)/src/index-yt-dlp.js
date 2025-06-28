@@ -15,7 +15,7 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 // Setup file uploads for cookies file
 const upload = multer({
   dest: path.join(__dirname, 'uploads'),
-  limits: { fileSize: 50 * 1024 } // 50KB max size for cookie files
+  limits: { fileSize: 50 * 1024 }
 });
 
 // Ensure uploads directory exists
@@ -30,51 +30,54 @@ app.use(express.static('public'));
 
 // Function to extract video ID from YouTube URL
 function extractVideoId(url) {
-  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+  const regExp =
+    /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
   const match = url.match(regExp);
-  return (match && match[7].length === 11) ? match[7] : null;
+  return match && match[7].length === 11 ? match[7] : null;
 }
 
 // Check yt-dlp on startup
 let ytDlpPath = null;
-findYtDlpPath().then(path => {
-  ytDlpPath = path;
-  console.log(`Found yt-dlp at: ${ytDlpPath}`);
-}).catch(err => {
-  console.error('Warning: yt-dlp not found in PATH. Captions will not work.');
-  console.error(err.message);
-});
+findYtDlpPath()
+  .then((path) => {
+    ytDlpPath = path;
+    console.log(`Found yt-dlp at: ${ytDlpPath}`);
+  })
+  .catch((err) => {
+    console.error('Warning: yt-dlp not found in PATH. Captions will not work.');
+    console.error(err.message);
+  });
 
 // Get captions for a YouTube video
 app.post('/api/captions', upload.single('cookiesFile'), async (req, res) => {
   try {
     const { videoUrl, language } = req.body;
     const cookiesFile = req.file ? req.file.path : null;
-    
+
     if (!videoUrl) {
       return res.status(400).json({ error: 'Video URL is required' });
     }
-    
+
     const videoId = extractVideoId(videoUrl);
     if (!videoId) {
       return res.status(400).json({ error: 'Invalid YouTube URL' });
     }
-    
+
     // Check if yt-dlp was found
     if (!ytDlpPath) {
       try {
         ytDlpPath = await findYtDlpPath();
       } catch (error) {
-        return res.status(500).json({ 
+        return res.status(500).json({
           error: `yt-dlp is not installed or not found in PATH. 
 Please either:
 1. Install yt-dlp: https://github.com/yt-dlp/yt-dlp#installation
 2. Add your Python Scripts directory to your PATH
-3. Set the YT_DLP_PATH environment variable to the location of yt-dlp.exe` 
+3. Set the YT_DLP_PATH environment variable to the location of yt-dlp.exe`
         });
       }
     }
-    
+
     // Get captions using yt-dlp
     const captionsData = await getYoutubeCaptions(videoUrl, {
       cookiesFile,
@@ -82,14 +85,14 @@ Please either:
       outputDir: uploadsDir,
       deleteSubtitleFile: true
     });
-    
+
     // Clean up the cookies file if it was uploaded
     if (cookiesFile && fs.existsSync(cookiesFile)) {
       fs.unlink(cookiesFile, (err) => {
         if (err) console.error(`Error deleting cookies file: ${err.message}`);
       });
     }
-    
+
     return res.json({
       videoId,
       fullTranscript: captionsData.fullTranscript,
@@ -97,7 +100,9 @@ Please either:
     });
   } catch (error) {
     console.error('Error in caption processing:', error);
-    return res.status(500).json({ error: `Failed to process captions: ${error.message}` });
+    return res
+      .status(500)
+      .json({ error: `Failed to process captions: ${error.message}` });
   }
 });
 
@@ -105,23 +110,32 @@ Please either:
 app.post('/api/ask', async (req, res) => {
   try {
     const { captions, question, model } = req.body;
-    
+
     if (!captions || !question || !model) {
-      return res.status(400).json({ error: 'Captions, question, and model are required' });
+      return res
+        .status(400)
+        .json({ error: 'Captions, question, and model are required' });
     }
-    
+
     // Check if OpenRouter API key is configured
     if (!OPENROUTER_API_KEY) {
-      return res.status(500).json({ error: 'OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.' });
+      return res
+        .status(500)
+        .json({
+          error:
+            'OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.'
+        });
     }
-    
+
     // Call the backend function for LLM API
     const answer = await getLLMResponse(question, captions, model);
-        
+
     return res.json({ answer });
   } catch (error) {
     console.error('Error in LLM API processing:', error);
-    return res.status(500).json({ error: error.message || 'Failed to process with LLM API' });
+    return res
+      .status(500)
+      .json({ error: error.message || 'Failed to process with LLM API' });
   }
 });
 
@@ -134,18 +148,18 @@ app.get('/', async (req, res) => {
   if (isLLMConfigured) {
     try {
       // Fetch models only if API key is configured
-      availableModels = await getAvailableModels(); 
+      availableModels = await getAvailableModels();
     } catch (error) {
-      console.error("Failed to fetch models for frontend:", error);
-      modelFetchError = "Could not fetch model list from OpenRouter.";
+      console.error('Failed to fetch models for frontend:', error);
+      modelFetchError = 'Could not fetch model list from OpenRouter.';
       // Keep availableModels as []
     }
   }
 
   // Filter for free models for the dropdown (adjust filter as needed)
   const freeModels = availableModels
-      .filter(model => model.id.includes(':free'))
-      .sort((a, b) => (a.name || '').localeCompare(b.name || '')); // Sort alphabetically by name
+    .filter((model) => model.id.includes(':free'))
+    .sort((a, b) => (a.name || '').localeCompare(b.name || '')); // Sort alphabetically by name
 
   res.send(`
     <!DOCTYPE html>
@@ -175,24 +189,38 @@ app.get('/', async (req, res) => {
       <div class="info">
         <p><strong>Note:</strong> This application uses yt-dlp to download captions from YouTube videos and OpenRouter API to answer questions about them.</p>
       </div>
-      ${!ytDlpPath ? `
+      ${
+        !ytDlpPath
+          ? `
       <div class="warning">
         <p><strong>Warning:</strong> yt-dlp was not found on your system!</p>
         <p>Please do one of the following:</p>
         <ol>
-          <li>Add <code>C:\\Users\\${process.env.USERNAME || 'YourUsername'}\\AppData\\Roaming\\Python\\Python313\\Scripts</code> to your PATH</li>
+          <li>Add <code>C:\\Users\\${
+            process.env.USERNAME || 'YourUsername'
+          }\\AppData\\Roaming\\Python\\Python313\\Scripts</code> to your PATH</li>
           <li>Set the <code>YT_DLP_PATH</code> environment variable to the full path to yt-dlp.exe</li>
           <li><a href="https://github.com/yt-dlp/yt-dlp#installation" target="_blank">Install yt-dlp</a> again and make sure it's in your PATH</li>
         </ol>
       </div>
-      ` : ''}
-      ${!isLLMConfigured ? `
+      `
+          : ''
+      }
+      ${
+        !isLLMConfigured
+          ? `
       <div class="warning">
         <p><strong>Warning:</strong> OpenRouter API key is not configured!</p>
         <p>Please set the OPENROUTER_API_KEY environment variable to enable the Q&A functionality.</p>
       </div>
-      ` : ''}
-      ${modelFetchError ? `<div class="warning"><p><strong>Warning:</strong> ${modelFetchError}</p></div>` : ''}
+      `
+          : ''
+      }
+      ${
+        modelFetchError
+          ? `<div class="warning"><p><strong>Warning:</strong> ${modelFetchError}</p></div>`
+          : ''
+      }
       <div class="instructions">
         <p><strong>Requirements:</strong></p>
         <ol>
@@ -236,13 +264,24 @@ app.get('/', async (req, res) => {
           
           <label for="modelSelect">Select Model:</label>
           <select id="modelSelect" ${freeModels.length === 0 ? 'disabled' : ''}>
-            ${freeModels.length > 0 
-              ? freeModels.map(model => `<option value="${model.id}">${model.name} (ID: ${model.id})</option>`).join('\n')
-              : '<option value="">-- No free models found --</option>'}
+            ${
+              freeModels.length > 0
+                ? freeModels
+                    .map(
+                      (model) =>
+                        `<option value="${model.id}">${model.name} (ID: ${model.id})</option>`
+                    )
+                    .join('\n')
+                : '<option value="">-- No free models found --</option>'
+            }
           </select>
           
-          <input type="text" id="question" placeholder="Enter your question about the video" style="width: 80%;" ${freeModels.length === 0 ? 'disabled' : ''}>
-          <button id="askButton" ${freeModels.length === 0 ? 'disabled' : ''}>Ask Question</button>
+          <input type="text" id="question" placeholder="Enter your question about the video" style="width: 80%;" ${
+            freeModels.length === 0 ? 'disabled' : ''
+          }>
+          <button id="askButton" ${
+            freeModels.length === 0 ? 'disabled' : ''
+          }>Ask Question</button>
           
           <div id="answerContainer" class="hidden">
             <h3>Answer:</h3>
@@ -336,10 +375,12 @@ app.get('/', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  console.log(`Open http://localhost:${PORT} in your browser to use the application`);
+  console.log(
+    `Open http://localhost:${PORT} in your browser to use the application`
+  );
   if (ytDlpPath) {
     console.log(`Using yt-dlp from: ${ytDlpPath}`);
   } else {
     console.log(`Warning: yt-dlp not found in PATH. Captions will not work.`);
   }
-}); 
+});
