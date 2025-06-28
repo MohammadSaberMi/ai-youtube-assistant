@@ -104,7 +104,9 @@
       date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
       expires = '; expires=' + date.toUTCString();
     }
-    document.cookie = `${name}=${value || ''}${expires}; path=/; SameSite=Strict; Secure`;
+    document.cookie = `${name}=${
+      value || ''
+    }${expires}; path=/; SameSite=Strict; Secure`;
   };
 
   const getCookie = (name) => {
@@ -126,22 +128,32 @@
   function getCurrentViewMode() {
     const flexyElement = document.querySelector('ytd-watch-flexy');
     if (flexyElement) {
-      if (flexyElement.hasAttribute('theater') || flexyElement.hasAttribute('fullscreen')) {
-        if (flexyElement.hasAttribute('fullscreen_')) return 'fullscreen_player';
+      if (
+        flexyElement.hasAttribute('theater') ||
+        flexyElement.hasAttribute('fullscreen')
+      ) {
+        if (flexyElement.hasAttribute('fullscreen_'))
+          return 'fullscreen_player';
         return 'theater';
       }
     }
-    if (document.fullscreenElement && document.querySelector('.html5-video-player.ytp-fullscreen')) {
+    if (
+      document.fullscreenElement &&
+      document.querySelector('.html5-video-player.ytp-fullscreen')
+    ) {
       return 'fullscreen_browser';
     }
     return 'default';
   }
   function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-      addInfoMessage('Answer copied to clipboard!');
-    }).catch(err => {
-      addErrorMessage('Failed to copy answer: ' + err.message);
-    });
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        addInfoMessage('Answer copied to clipboard!');
+      })
+      .catch((err) => {
+        addErrorMessage('Failed to copy answer: ' + err.message);
+      });
   }
   function switchTab(tabName) {
     if (!tabsContentContainer) return;
@@ -155,7 +167,9 @@
       pane.classList.remove('active');
     });
 
-    const selectedButton = Array.from(tabButtons).find((button) => button.dataset.tab === tabName);
+    const selectedButton = Array.from(tabButtons).find(
+      (button) => button.dataset.tab === tabName
+    );
     const selectedPane = document.getElementById(`tab-${tabName}`);
     if (selectedButton && selectedPane) {
       selectedButton.classList.add('active');
@@ -169,15 +183,21 @@
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:3000/api/recommended-questions/${videoId}`, {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await fetch(
+        `http://127.0.0.1:3000/api/recommended-questions/${videoId}`,
+        {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
       const data = await response.json();
       if (data.questions && Array.isArray(data.questions)) {
         renderSuggestedQuestions(data.questions);
       } else {
-        addErrorMessage('Failed to load suggested questions: ' + (data.error || 'No questions returned'));
+        addErrorMessage(
+          'Failed to load suggested questions: ' +
+            (data.error || 'No questions returned')
+        );
         renderSuggestedQuestions([]);
       }
     } catch (error) {
@@ -187,8 +207,12 @@
   }
 
   function renderSuggestedQuestions(questions) {
-    const suggestionsContainer = document.querySelector('#youtube-ai-suggestions');
-    const suggestionsList = document.querySelector('#youtube-ai-suggestions-list');
+    const suggestionsContainer = document.querySelector(
+      '#youtube-ai-suggestions'
+    );
+    const suggestionsList = document.querySelector(
+      '#youtube-ai-suggestions-list'
+    );
 
     if (!suggestionsContainer || !suggestionsList) return;
 
@@ -199,7 +223,7 @@
     }
 
     suggestionsContainer.classList.remove('hidden');
-    questions.forEach(question => {
+    questions.forEach((question) => {
       const button = document.createElement('button');
       button.classList.add('button', 'suggestion-button', 'blue-gradient');
       button.textContent = question;
@@ -220,38 +244,77 @@
     document.body.appendChild(chatContainer);
 
     loginContainer = chatContainer.querySelector('#youtube-ai-login-container');
-    tabsContentContainer = chatContainer.querySelector('#youtube-ai-tabs-content');
+    tabsContentContainer = chatContainer.querySelector(
+      '#youtube-ai-tabs-content'
+    );
     chatTabPane = chatContainer.querySelector('#tab-chat');
     settingsTabPane = chatContainer.querySelector('#tab-settings');
     historyTabPane = chatContainer.querySelector('#tab-history');
-    chatHistoryContainer = chatContainer.querySelector('#youtube-ai-chat-history');
-    fullHistoryDisplayContainer = chatContainer.querySelector('#youtube-ai-full-history-display');
-    chatInput = chatContainer.querySelector('#youtube-ai-chat-input-area .chat-input');
-    sendButton = chatContainer.querySelector('#youtube-ai-chat-input-area .blue-gradient');
-    loadCaptionsButton = chatContainer.querySelector('#youtube-ai-chat-input-area .green-gradient');
-    apiKeyInput = chatContainer.querySelector('#youtube-ai-settings-container .chat-input');
-    setApiKeyButton = chatContainer.querySelector('#youtube-ai-settings-container .purple-gradient');
-    modelSelect = chatContainer.querySelector('#youtube-ai-settings-container .select-field');
-    const suggestionsContainer = chatContainer.querySelector('#youtube-ai-suggestions');
-    const suggestionsList = chatContainer.querySelector('#youtube-ai-suggestions-list');
+    chatHistoryContainer = chatContainer.querySelector(
+      '#youtube-ai-chat-history'
+    );
+    fullHistoryDisplayContainer = chatContainer.querySelector(
+      '#youtube-ai-full-history-display'
+    );
+    chatInput = chatContainer.querySelector(
+      '#youtube-ai-chat-input-area .chat-input'
+    );
+    sendButton = chatContainer.querySelector(
+      '#youtube-ai-chat-input-area .blue-gradient'
+    );
+    loadCaptionsButton = chatContainer.querySelector(
+      '#youtube-ai-chat-input-area .green-gradient'
+    );
+    apiKeyInput = chatContainer.querySelector(
+      '#youtube-ai-settings-container .chat-input'
+    );
+    setApiKeyButton = chatContainer.querySelector(
+      '#youtube-ai-settings-container .purple-gradient'
+    );
+    modelSelect = chatContainer.querySelector(
+      '#youtube-ai-settings-container .select-field'
+    );
+    const suggestionsContainer = chatContainer.querySelector(
+      '#youtube-ai-suggestions'
+    );
+    const suggestionsList = chatContainer.querySelector(
+      '#youtube-ai-suggestions-list'
+    );
 
     const savedApiKey = getCookie('userApiKey');
     if (savedApiKey) apiKeyInput.value = savedApiKey;
 
-    loginContainer.querySelector('.blue-gradient').addEventListener('click', () => {
-      const usernameInput = loginContainer.querySelector('input[placeholder="Username"]');
-      const passwordInput = loginContainer.querySelector('input[placeholder="Password"]');
-      login(usernameInput.value, passwordInput.value);
-    });
-    loginContainer.querySelector('.green-gradient').addEventListener('click', () => {
-      const usernameInput = loginContainer.querySelector('input[placeholder="Username"]');
-      const passwordInput = loginContainer.querySelector('input[placeholder="Password"]');
-      signup(usernameInput.value, passwordInput.value);
-    });
-    setApiKeyButton.addEventListener('click', () => setApiKey(apiKeyInput.value));
+    loginContainer
+      .querySelector('.blue-gradient')
+      .addEventListener('click', () => {
+        const usernameInput = loginContainer.querySelector(
+          'input[placeholder="Username"]'
+        );
+        const passwordInput = loginContainer.querySelector(
+          'input[placeholder="Password"]'
+        );
+        login(usernameInput.value, passwordInput.value);
+      });
+    loginContainer
+      .querySelector('.green-gradient')
+      .addEventListener('click', () => {
+        const usernameInput = loginContainer.querySelector(
+          'input[placeholder="Username"]'
+        );
+        const passwordInput = loginContainer.querySelector(
+          'input[placeholder="Password"]'
+        );
+        signup(usernameInput.value, passwordInput.value);
+      });
+    setApiKeyButton.addEventListener('click', () =>
+      setApiKey(apiKeyInput.value)
+    );
     modelSelect.addEventListener('change', () => setModel(modelSelect.value));
     sendButton.addEventListener('click', handleSendMessage);
-    chatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleSendMessage());
+    chatInput.addEventListener(
+      'keypress',
+      (e) => e.key === 'Enter' && handleSendMessage()
+    );
     loadCaptionsButton.addEventListener('click', fetchAndProcessCaptions);
 
     chatContainer.querySelectorAll('.tab-button').forEach((button) => {
@@ -278,7 +341,9 @@
     }
 
     if (viewMode.startsWith('fullscreen')) {
-      console.log('YouTube AI Assistant: In fullscreen mode, UI will not be injected.');
+      console.log(
+        'YouTube AI Assistant: In fullscreen mode, UI will not be injected.'
+      );
       chatContainer.classList.remove('visible');
       return;
     }
@@ -292,7 +357,9 @@
           parentElement.querySelector('#below #actions');
       }
     } else {
-      parentElement = document.querySelector('ytd-watch-flexy div#secondary-inner');
+      parentElement = document.querySelector(
+        'ytd-watch-flexy div#secondary-inner'
+      );
       if (parentElement) {
         insertBeforeElement = parentElement.firstChild;
       }
@@ -307,13 +374,19 @@
       chatContainer.classList.add('visible');
     } else if (chatContainer) {
       chatContainer.classList.remove('visible');
-      console.warn('YouTube AI Assistant: Could not find suitable parent to inject UI for view mode:', viewMode);
+      console.warn(
+        'YouTube AI Assistant: Could not find suitable parent to inject UI for view mode:',
+        viewMode
+      );
     }
   }
 
   function addMessageToChat(sender, message, type = 'info', isInitial = false) {
     if (!chatHistoryContainer) return;
-    if (!isInitial && chatHistoryContainer.firstChild?.classList.contains('initial-greeting')) {
+    if (
+      !isInitial &&
+      chatHistoryContainer.firstChild?.classList.contains('initial-greeting')
+    ) {
       chatHistoryContainer.innerHTML = '';
     }
 
@@ -365,7 +438,8 @@
         loginContainer.classList.add('hidden');
         tabsContentContainer.classList.remove('hidden');
         fetchModels();
-        if (window.currentYouTubeAIVideoId) fetchChatHistory(window.currentYouTubeAIVideoId);
+        if (window.currentYouTubeAIVideoId)
+          fetchChatHistory(window.currentYouTubeAIVideoId);
         return true;
       } else {
         deleteCookie('token');
@@ -395,7 +469,8 @@
         loginContainer.classList.add('hidden');
         tabsContentContainer.classList.remove('hidden');
         fetchModels();
-        if (window.currentYouTubeAIVideoId) fetchChatHistory(window.currentYouTubeAIVideoId);
+        if (window.currentYouTubeAIVideoId)
+          fetchChatHistory(window.currentYouTubeAIVideoId);
       } else {
         addErrorMessage('Login failed: ' + data.error);
         loginContainer.classList.remove('hidden');
@@ -477,7 +552,8 @@
       }
     } catch (error) {
       addErrorMessage('Error fetching models: ' + error.message);
-      if (modelSelect) modelSelect.innerHTML = '<option value="">Error</option>';
+      if (modelSelect)
+        modelSelect.innerHTML = '<option value="">Error</option>';
     }
   }
 
@@ -510,17 +586,26 @@
     if (!token || !chatHistoryContainer) return;
 
     try {
-      const response = await fetch(`http://127.0.0.1:3000/api/chat-history/${videoId}`, {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await fetch(
+        `http://127.0.0.1:3000/api/chat-history/${videoId}`,
+        {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
       const data = await response.json();
-      if (chatHistoryContainer.firstChild?.classList.contains('initial-greeting')) {
+      if (
+        chatHistoryContainer.firstChild?.classList.contains('initial-greeting')
+      ) {
         chatHistoryContainer.innerHTML = '';
       }
       if (data.history && data.history.length > 0) {
         data.history.forEach((msg) => {
-          addMessageToChat(msg.sender === 'user' ? 'You' : 'AI', msg.message, msg.sender);
+          addMessageToChat(
+            msg.sender === 'user' ? 'You' : 'AI',
+            msg.message,
+            msg.sender
+          );
         });
       }
     } catch (error) {
@@ -529,9 +614,12 @@
   }
 
   function renderChatHistory(history) {
-    const historyContent = fullHistoryDisplayContainer.querySelector('.history-content');
-    const historyEmpty = fullHistoryDisplayContainer.querySelector('.history-empty');
-    const historyLoading = fullHistoryDisplayContainer.querySelector('.history-loading');
+    const historyContent =
+      fullHistoryDisplayContainer.querySelector('.history-content');
+    const historyEmpty =
+      fullHistoryDisplayContainer.querySelector('.history-empty');
+    const historyLoading =
+      fullHistoryDisplayContainer.querySelector('.history-loading');
 
     historyLoading.classList.add('hidden');
 
@@ -577,7 +665,7 @@
 
       const messageList = document.createElement('div');
       messageList.classList.add('history-message-list');
-      data.messages.forEach(msg => {
+      data.messages.forEach((msg) => {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('history-message', `message-${msg.sender}`);
         const senderSpan = document.createElement('span');
@@ -596,13 +684,17 @@
             <path d="M20 9H11C9.89543 9 9 9.89543 9 11V20C9 21.1046 9.89543 22 11 22H20C21.1046 22 22 21.1046 22 20V11C22 9.89543 21.1046 9 20 9ZM20 20H11V11H20V20ZM7 13H5C3.89543 13 3 12.1046 3 11V4C3 2.89543 3.89543 2 5 2H14C15.1046 2 16 2.89543 16 4V6H13V4H5V11H7V13Z" fill="#ffffff"/>
           </svg>
         `;
-          copyButton.addEventListener('click', () => copyToClipboard(msg.message));
+          copyButton.addEventListener('click', () =>
+            copyToClipboard(msg.message)
+          );
           messageDiv.appendChild(copyButton);
         }
 
         const timestampSpan = document.createElement('span');
         timestampSpan.classList.add('history-timestamp');
-        timestampSpan.textContent = ` (${new Date(msg.timestamp).toLocaleString()})`;
+        timestampSpan.textContent = ` (${new Date(
+          msg.timestamp
+        ).toLocaleString()})`;
         messageDiv.appendChild(timestampSpan);
         messageList.appendChild(messageDiv);
       });
@@ -616,8 +708,12 @@
     const token = getToken();
     if (!token) {
       addErrorMessage('Please login to view chat history.');
-      fullHistoryDisplayContainer.querySelector('.history-loading').classList.add('hidden');
-      fullHistoryDisplayContainer.querySelector('.history-empty').classList.remove('hidden');
+      fullHistoryDisplayContainer
+        .querySelector('.history-loading')
+        .classList.add('hidden');
+      fullHistoryDisplayContainer
+        .querySelector('.history-empty')
+        .classList.remove('hidden');
       return;
     }
 
@@ -633,31 +729,54 @@
       renderChatHistory(data.history || []);
     } catch (error) {
       addErrorMessage('Error fetching user chat history: ' + error.message);
-      fullHistoryDisplayContainer.querySelector('.history-loading').classList.add('hidden');
-      fullHistoryDisplayContainer.querySelector('.history-empty').classList.remove('hidden');
+      fullHistoryDisplayContainer
+        .querySelector('.history-loading')
+        .classList.add('hidden');
+      fullHistoryDisplayContainer
+        .querySelector('.history-empty')
+        .classList.remove('hidden');
     }
   }
 
   async function fetchAndProcessCaptions() {
     const token = getToken();
     if (!token) return addErrorMessage('Please login first.');
-    if (captionsLoaded && window.currentYouTubeAIVideoId) return addInfoMessage('Data already loaded for this video.');
+    if (captionsLoaded && window.currentYouTubeAIVideoId)
+      return addInfoMessage('Data already loaded for this video.');
 
     addInfoMessage('Loading video data...');
     loadCaptionsButton.disabled = true;
     loadCaptionsButton.textContent = 'Loading...';
 
-    const videoTitle = document.querySelector('title')?.textContent.trim().replace(/\s*-\s*YouTube$/, '') || 'No title';
-    const descriptionElement = document.querySelector('#description span#plain-snippet-text, #description .ytd-expandable-video-description-body-renderer .yt-core-attributed-string');
-    const videoDescription = descriptionElement ? descriptionElement.textContent.trim() : document.querySelector('#description yt-formatted-string.ytd-video-secondary-info-renderer')?.textContent.trim() || 'No description';
-    const comments = Array.from(document.querySelectorAll('ytd-comment-thread-renderer #content-text')).slice(0, 15).map((c) => c.textContent.trim());
+    const videoTitle =
+      document
+        .querySelector('title')
+        ?.textContent.trim()
+        .replace(/\s*-\s*YouTube$/, '') || 'No title';
+    const descriptionElement = document.querySelector(
+      '#description span#plain-snippet-text, #description .ytd-expandable-video-description-body-renderer .yt-core-attributed-string'
+    );
+    const videoDescription = descriptionElement
+      ? descriptionElement.textContent.trim()
+      : document
+          .querySelector(
+            '#description yt-formatted-string.ytd-video-secondary-info-renderer'
+          )
+          ?.textContent.trim() || 'No description';
+    const comments = Array.from(
+      document.querySelectorAll('ytd-comment-thread-renderer #content-text')
+    )
+      .slice(0, 15)
+      .map((c) => c.textContent.trim());
 
     let playerJson;
     try {
       const scripts = Array.from(document.scripts);
       for (const script of scripts) {
         if (script.textContent.includes('ytInitialPlayerResponse')) {
-          const match = script.textContent.match(/ytInitialPlayerResponse\s*=\s*(\{.*?\});(?:var\s챱메타데이터|var\s메타데이터|var\s|$$ function\( $$\{var\sytplayer|\s*if\s*\()/s);
+          const match = script.textContent.match(
+            /ytInitialPlayerResponse\s*=\s*(\{.*?\});(?:var\s챱메타데이터|var\s메타데이터|var\s|$$ function\( $$\{var\sytplayer|\s*if\s*\()/s
+          );
           if (match && match[1]) {
             playerJson = JSON.parse(match[1]);
             break;
@@ -674,20 +793,33 @@
       videoTranscript = 'Player response not found.';
     }
 
-    const tracks = playerJson?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
-    let track = tracks.find((t) => t.languageCode === 'en') || tracks.find((t) => t.baseUrl.includes('lang=en')) || tracks[0];
+    const tracks =
+      playerJson?.captions?.playerCaptionsTracklistRenderer?.captionTracks ||
+      [];
+    let track =
+      tracks.find((t) => t.languageCode === 'en') ||
+      tracks.find((t) => t.baseUrl.includes('lang=en')) ||
+      tracks[0];
 
     if (!track) {
-      addInfoMessage('No English captions found. Trying any available or proceeding without.');
+      addInfoMessage(
+        'No English captions found. Trying any available or proceeding without.'
+      );
       videoTranscript = 'No captions available.';
     } else {
       try {
         const res = await fetch(track.baseUrl);
-        if (!res.ok) throw new Error(`Captions XML fetch failed: ${res.statusText}`);
+        if (!res.ok)
+          throw new Error(`Captions XML fetch failed: ${res.statusText}`);
         const xml = await res.text();
         const doc = new DOMParser().parseFromString(xml, 'application/xml');
         const lines = Array.from(doc.querySelectorAll('text'))
-          .map((n) => n.textContent.trim().replace(/\n/g, ' ').replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec)))
+          .map((n) =>
+            n.textContent
+              .trim()
+              .replace(/\n/g, ' ')
+              .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
+          )
           .join(' ');
         videoTranscript = lines || ' ';
       } catch (error) {
@@ -696,12 +828,22 @@
       }
     }
 
-    const videoId = await sendDataToBackend(videoTitle, videoTranscript, videoDescription, comments);
+    const videoId = await sendDataToBackend(
+      videoTitle,
+      videoTranscript,
+      videoDescription,
+      comments
+    );
     if (videoId) {
       window.currentYouTubeAIVideoId = videoId;
       captionsLoaded = true;
-      if (videoTranscript.startsWith('No captions') || videoTranscript.startsWith('Failed to load')) {
-        addInfoMessage(`Video data sent (captions: ${videoTranscript.split('.')[0]}).`);
+      if (
+        videoTranscript.startsWith('No captions') ||
+        videoTranscript.startsWith('Failed to load')
+      ) {
+        addInfoMessage(
+          `Video data sent (captions: ${videoTranscript.split('.')[0]}).`
+        );
       } else {
         addInfoMessage('Video data & captions sent to backend.');
       }
@@ -735,13 +877,21 @@
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ title, captions: transcript, description, comments, youtubeVideoId })
+        body: JSON.stringify({
+          title,
+          captions: transcript,
+          description,
+          comments,
+          youtubeVideoId
+        })
       });
       const data = await response.json();
       if (data.success && data.videoId) {
         return data.videoId;
       } else {
-        addErrorMessage('Backend error: ' + (data.error || 'Failed to send data'));
+        addErrorMessage(
+          'Backend error: ' + (data.error || 'Failed to send data')
+        );
         return null;
       }
     } catch (error) {
@@ -778,7 +928,10 @@
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ videoId: window.currentYouTubeAIVideoId, question: query })
+        body: JSON.stringify({
+          videoId: window.currentYouTubeAIVideoId,
+          question: query
+        })
       });
       const currentThinkingMsg = Array.from(chatHistoryContainer.children).find(
         (el) => el.textContent.includes('AI: Thinking...')
@@ -806,7 +959,9 @@
       addInfoMessage('Attempting to load video data first...');
       await fetchAndProcessCaptions();
       if (!window.currentYouTubeAIVideoId) {
-        addErrorMessage('Please load video data first using "Load Data" button.');
+        addErrorMessage(
+          'Please load video data first using "Load Data" button.'
+        );
         return;
       }
     }
@@ -821,10 +976,17 @@
 
     if (chatHistoryContainer) chatHistoryContainer.innerHTML = '';
     if (fullHistoryDisplayContainer) {
-      fullHistoryDisplayContainer.querySelector('.history-content').innerHTML = '';
-      fullHistoryDisplayContainer.querySelector('.history-content').classList.add('hidden');
-      fullHistoryDisplayContainer.querySelector('.history-empty').classList.add('hidden');
-      fullHistoryDisplayContainer.querySelector('.history-loading').classList.remove('hidden');
+      fullHistoryDisplayContainer.querySelector('.history-content').innerHTML =
+        '';
+      fullHistoryDisplayContainer
+        .querySelector('.history-content')
+        .classList.add('hidden');
+      fullHistoryDisplayContainer
+        .querySelector('.history-empty')
+        .classList.add('hidden');
+      fullHistoryDisplayContainer
+        .querySelector('.history-loading')
+        .classList.remove('hidden');
     }
     if (document.querySelector('#youtube-ai-suggestions')) {
       document.querySelector('#youtube-ai-suggestions').classList.add('hidden');
@@ -853,27 +1015,49 @@
       let significantChange = false;
 
       for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && (mutation.attributeName === 'theater' || mutation.attributeName === 'fullscreen_' || mutation.attributeName === 'fullscreen')) {
+        if (
+          mutation.type === 'attributes' &&
+          (mutation.attributeName === 'theater' ||
+            mutation.attributeName === 'fullscreen_' ||
+            mutation.attributeName === 'fullscreen')
+        ) {
           significantChange = true;
           break;
         }
       }
 
-      if (document.fullscreenElement && getCurrentViewMode().startsWith('fullscreen')) {
+      if (
+        document.fullscreenElement &&
+        getCurrentViewMode().startsWith('fullscreen')
+      ) {
         significantChange = true;
-      } else if (!document.fullscreenElement && getCurrentViewMode() !== 'default' && getCurrentViewMode() !== 'theater') {
+      } else if (
+        !document.fullscreenElement &&
+        getCurrentViewMode() !== 'default' &&
+        getCurrentViewMode() !== 'theater'
+      ) {
         significantChange = true;
       }
 
-      if (newPageVideoId && window.currentYouTubePageVideoId !== newPageVideoId) {
-        console.log('Observer: Video ID changed from', window.currentYouTubePageVideoId, 'to', newPageVideoId);
+      if (
+        newPageVideoId &&
+        window.currentYouTubePageVideoId !== newPageVideoId
+      ) {
+        console.log(
+          'Observer: Video ID changed from',
+          window.currentYouTubePageVideoId,
+          'to',
+          newPageVideoId
+        );
         window.currentYouTubePageVideoId = newPageVideoId;
         setTimeout(() => {
           resetForNewVideo();
           injectChatUI();
         }, 300);
       } else if (significantChange) {
-        console.log('Observer: View mode attribute changed (theater/fullscreen). Re-injecting UI.');
+        console.log(
+          'Observer: View mode attribute changed (theater/fullscreen). Re-injecting UI.'
+        );
         setTimeout(injectChatUI, 300);
       }
     });
@@ -893,7 +1077,8 @@
     document.addEventListener('yt-navigate-finish', () => {
       console.log('yt-navigate-finish detected.');
       const flexy = document.querySelector('ytd-watch-flexy');
-      if (flexy) window.currentYouTubePageVideoId = flexy.getAttribute('video-id');
+      if (flexy)
+        window.currentYouTubePageVideoId = flexy.getAttribute('video-id');
 
       setTimeout(async () => {
         resetForNewVideo();
@@ -905,7 +1090,12 @@
           if (!isValid && loginContainer && tabsContentContainer) {
             loginContainer.classList.remove('hidden');
             tabsContentContainer.classList.add('hidden');
-            addMessageToChat('AI', 'Session issue. Please login again.', 'ai', true);
+            addMessageToChat(
+              'AI',
+              'Session issue. Please login again.',
+              'ai',
+              true
+            );
           } else {
             fetchUserChatHistory(window.currentYouTubeAIVideoId); // Fetch history on page load if logged in
           }
@@ -932,16 +1122,24 @@
   }
 
   const checkPageReady = () => {
-    if (document.querySelector('ytd-watch-flexy #secondary-inner') || document.querySelector('ytd-watch-flexy #primary-inner')) {
+    if (
+      document.querySelector('ytd-watch-flexy #secondary-inner') ||
+      document.querySelector('ytd-watch-flexy #primary-inner')
+    ) {
       initialize();
     } else if (attempts++ < 50) {
       setTimeout(checkPageReady, 200);
     } else {
-      console.warn('YouTube AI Assistant: Key elements not found. Assistant may not load.');
+      console.warn(
+        'YouTube AI Assistant: Key elements not found. Assistant may not load.'
+      );
     }
   };
   let attempts = 0;
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  if (
+    document.readyState === 'complete' ||
+    document.readyState === 'interactive'
+  ) {
     checkPageReady();
   } else {
     document.addEventListener('DOMContentLoaded', checkPageReady);
