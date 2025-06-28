@@ -1,6 +1,84 @@
 (() => {
   console.log('YouTube AI Assistant content script loaded.');
 
+  const chatUIHTML = `
+  <div id="youtube-ai-chat-container" class="youtube-ai-chat-container">
+    <div id="youtube-ai-chat-header" class="youtube-ai-chat-header">
+      Video AI Assistant
+      <div class="tab-nav">
+        <button data-tab="chat" class="tab-button icon-button active" title="Chat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="#4b5563"/>
+          </svg>
+        </button>
+        <button data-tab="settings" class="tab-button icon-button" title="Settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19.14 12.94C19.18 12.64 19.2 12.33 19.2 12C19.2 11.67 19.18 11.36 19.14 11.06L21.55 9.37C21.74 9.23 21.82 8.99 21.74 8.78L19.44 4.17C19.36 3.96 19.14 3.88 18.93 3.96L16.11 5.26C15.67 4.91 15.19 4.62 14.67 4.39L14.34 1.41C14.31 1.18 14.13 1 13.9 1H10.1C9.87 1 9.69 1.18 9.66 1.41L9.33 4.39C8.81 4.62 8.33 4.91 7.89 5.26L5.07 3.96C4.86 3.88 4.64 3.96 4.56 4.17L2.26 8.78C2.18 8.99 2.26 9.23 2.45 9.37L4.86 11.06C4.82 11.36 4.8 11.67 4.8 12C4.8 12.33 4.82 12.64 4.86 12.94L2.45 14.63C2.26 14.77 2.18 15.01 2.26 15.22L4.56 19.83C4.64 20.04 4.86 20.12 5.07 20.04L7.89 18.74C8.33 19.09 8.81 19.38 9.33 19.61L9.66 22.59C9.69 22.82 9.87 23 10.1 23H13.9C14.13 23 14.31 22.82 14.34 22.59L14.67 19.61C15.19 19.38 15.67 19.09 16.11 18.74L18.93 20.04C19.14 20.12 19.36 20.04 19.44 19.83L21.74 15.22C21.82 15.01 21.74 14.77 21.55 14.63L19.14 12.94Z" fill="#4b5563"/>
+          </svg>
+        </button>
+        <button data-tab="history" class="tab-button icon-button" title="History">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 3C8.03 3 4 7.03 4 12H1L4.89 15.89L8.78 12H6C6 8.13 9.13 5 13 5C16.87 5 20 8.13 20 12C20 15.87 16.87 19 13 19C11.07 19 9.32 18.21 8.06 16.94L6.64 18.36C8.27 19.99 10.51 21 13 21C17.97 21 22 16.97 22 12C22 7.03 17.97 3 13 3ZM12 8V13L16.28 15.54L17 14.33L13.5 12.25V8H12Z" fill="#4b5563"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="youtube-ai-login-container">
+      <input placeholder="Username" class="input-field login-input" />
+      <input type="password" placeholder="Password" class="input-field login-input" />
+      <button class="button auth-button blue-gradient">Login</button>
+      <button class="button auth-button green-gradient signup-button-spacing">Signup</button>
+    </div>
+    <div id="youtube-ai-tabs-content" class="tab-content">
+      <div id="tab-chat" class="tab-pane active">
+        <div id="youtube-ai-chat-history" class="chat-history"></div>
+        <div id="youtube-ai-suggestions" class="suggestions-container hidden">
+          <div id="youtube-ai-suggestions-list" class="suggestions-list"></div>
+        </div>
+        <div id="youtube-ai-chat-input-area" class="input-area">
+          <input type="text" placeholder="Ask about the video..." class="input-field chat-input" />
+          <button class="button chat-button blue-gradient">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.11933 4.38421C6.32524 2.98547 3.22434 5.63695 4.17515 8.61184L5.26247 12.0138L4.18106 15.3845C3.22719 18.3576 6.32366 21.0124 9.11924 19.6182L18.0461 15.1663C20.6491 13.8682 20.6519 10.1575 18.0509 8.85543L9.11933 4.38421Z" fill="#363853"/>
+            </svg>
+          </button>
+          <button class="button chat-button green-gradient load-captions-spacing">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"/>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+              <g id="SVGRepo_iconCarrier">
+                <path d="M12 2C12.5523 2 13 2.44772 13 3L13 13.5858L16.2929 10.2929C16.6834 9.90237 17.3166 9.90237 17.7071 10.2929C18.0976 10.6834 18.0976 11.3166 17.7071 11.7071L12.7087 16.7055L12.6936 16.7204C12.5145 16.8929 12.2711 16.9992 12.003 17L12 17L11.997 17C11.8631 16.9996 11.7353 16.9729 11.6187 16.9247C11.5002 16.8759 11.3892 16.8034 11.2929 16.7071L6.29289 11.7071C5.90237 11.3166 5.90237 10.6834 6.29289 10.2929C6.68342 9.90237 7.31658 9.90237 7.70711 10.2929L11 13.5858L11 3C11 2.44772 11.4477 2 12 2Z" fill="#000000"/>
+                <path d="M4 17C4 16.4477 3.55228 16 3 16C2.44772 16 2 16.4477 2 17V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V17C22 16.4477 21.5523 16 21 16C20.4477 16 20 16.4477 20 17V20H4V17Z" fill="#000000"/>
+              </g>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div id="tab-settings" class="tab-pane">
+        <div id="youtube-ai-settings-container">
+          <input placeholder="OpenRouter API Key" class="input-field chat-input" />
+          <button class="button full-width purple-gradient">Set API Key</button>
+          <select class="select-field">
+            <option value="">Select a model</option>
+          </select>
+        </div>
+      </div>
+      <div id="tab-history" class="tab-pane">
+        <div id="youtube-ai-full-history-display" class="history-display">
+          <div class="history-loading">Loading history...</div>
+          <div class="history-empty hidden">No chat history available.</div>
+          <div class="history-content hidden"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+`;
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = chrome.runtime.getURL('styles.css');
+  document.head.appendChild(link);
+
   let videoTranscript = '';
   let captionsLoaded = false;
   let chatContainer;
@@ -15,7 +93,7 @@
   let viewModeObserver = null;
   window.currentYouTubePageVideoId = null;
 
-  let tabsContainer;
+  let tabsContentContainer;
   let chatTabPane, settingsTabPane, historyTabPane;
   let fullHistoryDisplayContainer;
 
@@ -26,9 +104,7 @@
       date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
       expires = '; expires=' + date.toUTCString();
     }
-    document.cookie = `${name}=${
-      value || ''
-    }${expires}; path=/; SameSite=Strict`;
+    document.cookie = `${name}=${value || ''}${expires}; path=/; SameSite=Strict; Secure`;
   };
 
   const getCookie = (name) => {
@@ -50,428 +126,144 @@
   function getCurrentViewMode() {
     const flexyElement = document.querySelector('ytd-watch-flexy');
     if (flexyElement) {
-      if (
-        flexyElement.hasAttribute('theater') ||
-        flexyElement.hasAttribute('fullscreen')
-      ) {
-        if (flexyElement.hasAttribute('fullscreen_'))
-          return 'fullscreen_player';
+      if (flexyElement.hasAttribute('theater') || flexyElement.hasAttribute('fullscreen')) {
+        if (flexyElement.hasAttribute('fullscreen_')) return 'fullscreen_player';
         return 'theater';
       }
     }
-    if (
-      document.fullscreenElement &&
-      document.querySelector('.html5-video-player.ytp-fullscreen')
-    ) {
+    if (document.fullscreenElement && document.querySelector('.html5-video-player.ytp-fullscreen')) {
       return 'fullscreen_browser';
     }
     return 'default';
   }
-
-  function switchTab(tabName) {
-    if (!tabsContainer) return;
-    const tabButtons = tabsContainer.querySelectorAll('.tab-button');
-    const tabPanes = tabsContainer.querySelectorAll('.tab-pane');
-
-    tabButtons.forEach((button) => {
-      button.classList.toggle('active', button.dataset.tab === tabName);
-      if (button.dataset.tab === tabName) {
-        button.style.background =
-          button.dataset.tab === 'chat'
-            ? 'linear-gradient(90deg, #3b82f6, #2563eb)'
-            : button.dataset.tab === 'settings'
-            ? 'linear-gradient(90deg, #8b5cf6, #6d28d9)'
-            : 'linear-gradient(90deg, #14b8a6, #0d9488)';
-        button.style.color = '#ffffff';
-        button.style.borderBottomColor = 'transparent';
-        button.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
-      } else {
-        button.style.background = 'transparent';
-        button.style.color = '#4b5563';
-        button.style.borderBottomColor = '#ccc';
-        button.style.boxShadow = 'none';
-      }
-    });
-    tabPanes.forEach((pane) => {
-      pane.style.display = pane.id === `tab-${tabName}` ? 'block' : 'none';
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      addInfoMessage('Answer copied to clipboard!');
+    }).catch(err => {
+      addErrorMessage('Failed to copy answer: ' + err.message);
     });
   }
+  function switchTab(tabName) {
+    if (!tabsContentContainer) return;
+    const tabButtons = chatContainer.querySelectorAll('.tab-button');
+    const tabPanes = tabsContentContainer.querySelectorAll('.tab-pane');
 
+    tabButtons.forEach((button) => {
+      button.classList.remove('active');
+    });
+    tabPanes.forEach((pane) => {
+      pane.classList.remove('active');
+    });
+
+    const selectedButton = Array.from(tabButtons).find((button) => button.dataset.tab === tabName);
+    const selectedPane = document.getElementById(`tab-${tabName}`);
+    if (selectedButton && selectedPane) {
+      selectedButton.classList.add('active');
+      selectedPane.classList.add('active');
+    }
+  }
+  async function fetchRecommendedQuestions(videoId) {
+    const token = getToken();
+    if (!token || !videoId) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:3000/api/recommended-questions/${videoId}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.questions && Array.isArray(data.questions)) {
+        renderSuggestedQuestions(data.questions);
+      } else {
+        addErrorMessage('Failed to load suggested questions: ' + (data.error || 'No questions returned'));
+        renderSuggestedQuestions([]);
+      }
+    } catch (error) {
+      addErrorMessage('Error fetching suggested questions: ' + error.message);
+      renderSuggestedQuestions([]);
+    }
+  }
+
+  function renderSuggestedQuestions(questions) {
+    const suggestionsContainer = document.querySelector('#youtube-ai-suggestions');
+    const suggestionsList = document.querySelector('#youtube-ai-suggestions-list');
+
+    if (!suggestionsContainer || !suggestionsList) return;
+
+    suggestionsList.innerHTML = '';
+    if (questions.length === 0) {
+      suggestionsContainer.classList.add('hidden');
+      return;
+    }
+
+    suggestionsContainer.classList.remove('hidden');
+    questions.forEach(question => {
+      const button = document.createElement('button');
+      button.classList.add('button', 'suggestion-button', 'blue-gradient');
+      button.textContent = question;
+      button.style.minWidth = '120px'; // Ensure buttons have a minimum width for consistency
+      button.addEventListener('click', () => {
+        chatInput.value = question;
+        chatInput.focus();
+      });
+      suggestionsList.appendChild(button);
+    });
+  }
   function ensureChatUIElements() {
     if (chatContainer) return;
 
-    chatContainer = document.createElement('div');
-    chatContainer.id = 'youtube-ai-chat-container';
-    chatContainer.style.border = '1px solid #e5e7eb';
-    chatContainer.style.padding = '16px';
-    chatContainer.style.backgroundColor = '#ffffff';
-    chatContainer.style.width = '100%';
-    chatContainer.style.marginBottom = '16px';
-    chatContainer.style.display = 'none';
-    chatContainer.style.flexDirection = 'column';
-    chatContainer.style.boxSizing = 'border-box';
-    chatContainer.style.borderRadius = '12px';
-    chatContainer.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = chatUIHTML;
+    chatContainer = tempDiv.firstElementChild;
+    document.body.appendChild(chatContainer);
 
-    const header = document.createElement('div');
-    header.id = 'youtube-ai-chat-header';
-    header.textContent = 'Video AI Assistant';
-    header.style.fontSize = '1.1em';
-    header.style.fontWeight = 'bold';
-    header.style.marginBottom = '12px';
-    header.style.textAlign = 'center';
-    header.style.color = '#1f2937';
-    chatContainer.appendChild(header);
+    loginContainer = chatContainer.querySelector('#youtube-ai-login-container');
+    tabsContentContainer = chatContainer.querySelector('#youtube-ai-tabs-content');
+    chatTabPane = chatContainer.querySelector('#tab-chat');
+    settingsTabPane = chatContainer.querySelector('#tab-settings');
+    historyTabPane = chatContainer.querySelector('#tab-history');
+    chatHistoryContainer = chatContainer.querySelector('#youtube-ai-chat-history');
+    fullHistoryDisplayContainer = chatContainer.querySelector('#youtube-ai-full-history-display');
+    chatInput = chatContainer.querySelector('#youtube-ai-chat-input-area .chat-input');
+    sendButton = chatContainer.querySelector('#youtube-ai-chat-input-area .blue-gradient');
+    loadCaptionsButton = chatContainer.querySelector('#youtube-ai-chat-input-area .green-gradient');
+    apiKeyInput = chatContainer.querySelector('#youtube-ai-settings-container .chat-input');
+    setApiKeyButton = chatContainer.querySelector('#youtube-ai-settings-container .purple-gradient');
+    modelSelect = chatContainer.querySelector('#youtube-ai-settings-container .select-field');
+    const suggestionsContainer = chatContainer.querySelector('#youtube-ai-suggestions');
+    const suggestionsList = chatContainer.querySelector('#youtube-ai-suggestions-list');
 
-    loginContainer = document.createElement('div');
-    loginContainer.id = 'youtube-ai-login-container';
-    const usernameInput = document.createElement('input');
-    usernameInput.placeholder = 'Username';
-    usernameInput.style.marginBottom = '12px';
-    usernameInput.style.width = 'calc(100% - 20px)';
-    usernameInput.style.padding = '10px';
-    usernameInput.style.border = '1px solid #d1d5db';
-    usernameInput.style.borderRadius = '8px';
-    usernameInput.style.fontSize = '0.95em';
-    usernameInput.style.transition = 'border-color 0.2s, box-shadow 0.2s';
-    usernameInput.style.outline = 'none';
-    usernameInput.addEventListener('focus', () => {
-      usernameInput.style.borderColor = '#3b82f6';
-      usernameInput.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.3)';
-    });
-    usernameInput.addEventListener('blur', () => {
-      usernameInput.style.borderColor = '#d1d5db';
-      usernameInput.style.boxShadow = 'none';
-    });
-
-    const passwordInput = document.createElement('input');
-    passwordInput.type = 'password';
-    passwordInput.placeholder = 'Password';
-    passwordInput.style.marginBottom = '12px';
-    passwordInput.style.width = 'calc(100% - 20px)';
-    passwordInput.style.padding = '10px';
-    passwordInput.style.border = '1px solid #d1d5db';
-    passwordInput.style.borderRadius = '8px';
-    passwordInput.style.fontSize = '0.95em';
-    passwordInput.style.transition = 'border-color 0.2s, box-shadow 0.2s';
-    passwordInput.style.outline = 'none';
-    passwordInput.addEventListener('focus', () => {
-      passwordInput.style.borderColor = '#3b82f6';
-      passwordInput.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.3)';
-    });
-    passwordInput.addEventListener('blur', () => {
-      passwordInput.style.borderColor = '#d1d5db';
-      passwordInput.style.boxShadow = 'none';
-    });
-
-    const loginButton = document.createElement('button');
-    loginButton.textContent = 'Login';
-    loginButton.style.padding = '10px';
-    loginButton.style.width = '48%';
-    loginButton.style.background = 'linear-gradient(90deg, #3b82f6, #2563eb)';
-    loginButton.style.color = '#ffffff';
-    loginButton.style.border = 'none';
-    loginButton.style.borderRadius = '8px';
-    loginButton.style.fontSize = '0.95em';
-    loginButton.style.cursor = 'pointer';
-    loginButton.style.transition = 'background 0.3s, transform 0.2s';
-    loginButton.addEventListener('mouseover', () => {
-      loginButton.style.background = 'linear-gradient(90deg, #2563eb, #1e40af)';
-      loginButton.style.transform = 'scale(1.02)';
-    });
-    loginButton.addEventListener('mouseout', () => {
-      loginButton.style.background = 'linear-gradient(90deg, #3b82f6, #2563eb)';
-      loginButton.style.transform = 'scale(1)';
-    });
-
-    const signupButton = document.createElement('button');
-    signupButton.textContent = 'Signup';
-    signupButton.style.marginLeft = '4%';
-    signupButton.style.padding = '10px';
-    signupButton.style.width = '48%';
-    signupButton.style.background = 'linear-gradient(90deg, #14b8a6, #0d9488)';
-    signupButton.style.color = '#ffffff';
-    signupButton.style.border = 'none';
-    signupButton.style.borderRadius = '8px';
-    signupButton.style.fontSize = '0.95em';
-    signupButton.style.cursor = 'pointer';
-    signupButton.style.transition = 'background 0.3s, transform 0.2s';
-    signupButton.addEventListener('mouseover', () => {
-      signupButton.style.background =
-        'linear-gradient(90deg, #0d9488, #0f766e)';
-      signupButton.style.transform = 'scale(1.02)';
-    });
-    signupButton.addEventListener('mouseout', () => {
-      signupButton.style.background =
-        'linear-gradient(90deg, #14b8a6, #0d9488)';
-      signupButton.style.transform = 'scale(1)';
-    });
-
-    loginContainer.append(
-      usernameInput,
-      passwordInput,
-      loginButton,
-      signupButton
-    );
-    chatContainer.appendChild(loginContainer);
-
-    tabsContainer = document.createElement('div');
-    tabsContainer.id = 'youtube-ai-tabs-main';
-    tabsContainer.style.display = 'none';
-
-    const tabNav = document.createElement('div');
-    tabNav.id = 'youtube-ai-tabs-nav';
-    tabNav.style.display = 'flex';
-    tabNav.style.marginBottom = '8px';
-    tabNav.style.borderBottom = '1px solid #e5e7eb';
-
-    ['Chat', 'Settings', 'History'].forEach((tabNameStr, index) => {
-      const tabButton = document.createElement('button');
-      tabButton.textContent = tabNameStr;
-      tabButton.dataset.tab = tabNameStr.toLowerCase();
-      tabButton.classList.add('tab-button');
-      if (index === 0) tabButton.classList.add('active');
-      tabButton.style.padding = '8px 16px';
-      tabButton.style.border = '1px solid #e5e7eb';
-      tabButton.style.borderBottom = 'none';
-      tabButton.style.borderRadius = '8px 8px 0 0';
-      tabButton.style.cursor = 'pointer';
-      tabButton.style.fontSize = '0.95em';
-      tabButton.style.fontWeight = '600';
-      tabButton.style.marginRight = '4px';
-      tabButton.style.color = '#4b5563';
-      tabButton.style.background = 'transparent';
-      tabButton.style.transition =
-        'background 0.3s, color 0.3s, transform 0.2s, box-shadow 0.3s';
-      tabButton.style.position = 'relative';
-      tabButton.style.overflow = 'hidden';
-
-      if (index === 0) {
-        tabButton.style.background = 'linear-gradient(90deg, #3b82f6, #2563eb)';
-        tabButton.style.color = '#ffffff';
-        tabButton.style.borderBottomColor = 'transparent';
-        tabButton.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
-      }
-
-      const hoverBackground =
-        tabNameStr.toLowerCase() === 'chat'
-          ? 'linear-gradient(90deg, #2563eb, #1e40af)'
-          : tabNameStr.toLowerCase() === 'settings'
-          ? 'linear-gradient(90deg, #6d28d9, #5b21b6)'
-          : 'linear-gradient(90deg, #0d9488, #0f766e)';
-      tabButton.style.setProperty(
-        ':hover',
-        `background: ${hoverBackground}; color: #ffffff; transform: scale(1.05); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);`
-      );
-
-      tabButton.addEventListener('click', () =>
-        switchTab(tabNameStr.toLowerCase())
-      );
-      tabNav.appendChild(tabButton);
-    });
-    tabsContainer.appendChild(tabNav);
-
-    const tabContent = document.createElement('div');
-    tabContent.id = 'youtube-ai-tabs-content';
-
-    chatTabPane = document.createElement('div');
-    chatTabPane.id = 'tab-chat';
-    chatTabPane.classList.add('tab-pane', 'active');
-    chatTabPane.style.display = 'block';
-
-    chatHistoryContainer = document.createElement('div');
-    chatHistoryContainer.id = 'youtube-ai-chat-history';
-    chatHistoryContainer.style.maxHeight = '200px';
-    chatHistoryContainer.style.minHeight = '100px';
-    chatHistoryContainer.style.overflowY = 'auto';
-    chatHistoryContainer.style.border = '1px solid #e5e7eb';
-    chatHistoryContainer.style.marginBottom = '8px';
-    chatHistoryContainer.style.padding = '8px';
-    chatHistoryContainer.style.fontSize = '0.9em';
-    chatHistoryContainer.style.borderRadius = '8px';
-    chatTabPane.appendChild(chatHistoryContainer);
-
-    const inputArea = document.createElement('div');
-    inputArea.id = 'youtube-ai-chat-input-area';
-    inputArea.style.display = 'flex';
-    inputArea.style.gap = '8px';
-
-    chatInput = document.createElement('input');
-    chatInput.type = 'text';
-    chatInput.placeholder = 'Ask about the video...';
-    chatInput.style.flexGrow = '1';
-    chatInput.style.padding = '10px';
-    chatInput.style.border = '1px solid #d1d5db';
-    chatInput.style.borderRadius = '8px';
-    chatInput.style.fontSize = '0.9em';
-    chatInput.style.transition = 'border-color 0.2s, box-shadow 0.2s';
-    chatInput.style.outline = 'none';
-    chatInput.addEventListener('focus', () => {
-      chatInput.style.borderColor = '#3b82f6';
-      chatInput.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.3)';
-    });
-    chatInput.addEventListener('blur', () => {
-      chatInput.style.borderColor = '#d1d5db';
-      chatInput.style.boxShadow = 'none';
-    });
-
-    sendButton = document.createElement('button');
-    sendButton.textContent = 'Send';
-    sendButton.style.padding = '10px';
-    sendButton.style.background = 'linear-gradient(90deg, #3b82f6, #2563eb)';
-    sendButton.style.color = '#ffffff';
-    sendButton.style.border = 'none';
-    sendButton.style.borderRadius = '8px';
-    sendButton.style.fontSize = '0.9em';
-    sendButton.style.cursor = 'pointer';
-    sendButton.style.transition = 'background 0.3s, transform 0.2s';
-    sendButton.addEventListener('mouseover', () => {
-      sendButton.style.background = 'linear-gradient(90deg, #2563eb, #1e40af)';
-      sendButton.style.transform = 'scale(1.02)';
-    });
-    sendButton.addEventListener('mouseout', () => {
-      sendButton.style.background = 'linear-gradient(90deg, #3b82f6, #2563eb)';
-      sendButton.style.transform = 'scale(1)';
-    });
-
-    loadCaptionsButton = document.createElement('button');
-    loadCaptionsButton.textContent = 'Load Data';
-    loadCaptionsButton.style.marginLeft = '5px';
-    loadCaptionsButton.style.padding = '10px';
-    loadCaptionsButton.style.background =
-      'linear-gradient(90deg, #14b8a6, #0d9488)';
-    loadCaptionsButton.style.color = '#ffffff';
-    loadCaptionsButton.style.border = 'none';
-    loadCaptionsButton.style.borderRadius = '8px';
-    loadCaptionsButton.style.fontSize = '0.9em';
-    loadCaptionsButton.style.cursor = 'pointer';
-    loadCaptionsButton.style.transition = 'background 0.3s, transform 0.2s';
-    loadCaptionsButton.addEventListener('mouseover', () => {
-      loadCaptionsButton.style.background =
-        'linear-gradient(90deg, #0d9488, #0f766e)';
-      loadCaptionsButton.style.transform = 'scale(1.02)';
-    });
-    loadCaptionsButton.addEventListener('mouseout', () => {
-      loadCaptionsButton.style.background =
-        'linear-gradient(90deg, #14b8a6, #0d9488)';
-      loadCaptionsButton.style.transform = 'scale(1)';
-    });
-
-    inputArea.append(chatInput, sendButton, loadCaptionsButton);
-    chatTabPane.appendChild(inputArea);
-    tabContent.appendChild(chatTabPane);
-
-    settingsTabPane = document.createElement('div');
-    settingsTabPane.id = 'tab-settings';
-    settingsTabPane.classList.add('tab-pane');
-    settingsTabPane.style.display = 'none';
-
-    const settingsContainer = document.createElement('div');
-    settingsContainer.id = 'youtube-ai-settings-container';
-    apiKeyInput = document.createElement('input');
-    apiKeyInput.placeholder = 'OpenRouter API Key';
-    apiKeyInput.style.marginBottom = '12px';
-    apiKeyInput.style.width = 'calc(100% - 20px)';
-    apiKeyInput.style.padding = '10px';
-    apiKeyInput.style.border = '1px solid #d1d5db';
-    apiKeyInput.style.borderRadius = '8px';
-    apiKeyInput.style.fontSize = '0.9em';
-    apiKeyInput.style.transition = 'border-color 0.2s, box-shadow 0.2s';
-    apiKeyInput.style.outline = 'none';
-    apiKeyInput.addEventListener('focus', () => {
-      apiKeyInput.style.borderColor = '#3b82f6';
-      apiKeyInput.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.3)';
-    });
-    apiKeyInput.addEventListener('blur', () => {
-      apiKeyInput.style.borderColor = '#d1d5db';
-      apiKeyInput.style.boxShadow = 'none';
-    });
     const savedApiKey = getCookie('userApiKey');
     if (savedApiKey) apiKeyInput.value = savedApiKey;
 
-    setApiKeyButton = document.createElement('button');
-    setApiKeyButton.textContent = 'Set API Key';
-    setApiKeyButton.style.marginBottom = '10px';
-    setApiKeyButton.style.padding = '10px';
-    setApiKeyButton.style.width = '100%';
-    setApiKeyButton.style.background =
-      'linear-gradient(90deg, #8b5cf6, #6d28d9)';
-    setApiKeyButton.style.color = '#ffffff';
-    setApiKeyButton.style.border = 'none';
-    setApiKeyButton.style.borderRadius = '8px';
-    setApiKeyButton.style.fontSize = '0.9em';
-    setApiKeyButton.style.cursor = 'pointer';
-    setApiKeyButton.style.transition = 'background 0.3s, transform 0.2s';
-    setApiKeyButton.addEventListener('mouseover', () => {
-      setApiKeyButton.style.background =
-        'linear-gradient(90deg, #6d28d9, #5b21b6)';
-      setApiKeyButton.style.transform = 'scale(1.02)';
+    loginContainer.querySelector('.blue-gradient').addEventListener('click', () => {
+      const usernameInput = loginContainer.querySelector('input[placeholder="Username"]');
+      const passwordInput = loginContainer.querySelector('input[placeholder="Password"]');
+      login(usernameInput.value, passwordInput.value);
     });
-    setApiKeyButton.addEventListener('mouseout', () => {
-      setApiKeyButton.style.background =
-        'linear-gradient(90deg, #8b5cf6, #6d28d9)';
-      setApiKeyButton.style.transform = 'scale(1)';
+    loginContainer.querySelector('.green-gradient').addEventListener('click', () => {
+      const usernameInput = loginContainer.querySelector('input[placeholder="Username"]');
+      const passwordInput = loginContainer.querySelector('input[placeholder="Password"]');
+      signup(usernameInput.value, passwordInput.value);
     });
-
-    modelSelect = document.createElement('select');
-    modelSelect.innerHTML = '<option value="">Select a model</option>';
-    modelSelect.style.width = '100%';
-    modelSelect.style.padding = '10px';
-    modelSelect.style.border = '1px solid #d1d5db';
-    modelSelect.style.borderRadius = '8px';
-    modelSelect.style.fontSize = '0.9em';
-    modelSelect.style.transition = 'border-color 0.2s, box-shadow 0.2s';
-    modelSelect.style.outline = 'none';
-    modelSelect.addEventListener('focus', () => {
-      modelSelect.style.borderColor = '#3b82f6';
-      modelSelect.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.3)';
-    });
-    modelSelect.addEventListener('blur', () => {
-      modelSelect.style.borderColor = '#d1d5db';
-      modelSelect.style.boxShadow = 'none';
-    });
-
-    settingsContainer.append(apiKeyInput, setApiKeyButton, modelSelect);
-    settingsTabPane.appendChild(settingsContainer);
-    tabContent.appendChild(settingsTabPane);
-
-    historyTabPane = document.createElement('div');
-    historyTabPane.id = 'tab-history';
-    historyTabPane.classList.add('tab-pane');
-    historyTabPane.style.display = 'none';
-    fullHistoryDisplayContainer = document.createElement('div');
-    fullHistoryDisplayContainer.id = 'youtube-ai-full-history-display';
-    fullHistoryDisplayContainer.textContent =
-      'History (feature in development).';
-    fullHistoryDisplayContainer.style.padding = '10px';
-    fullHistoryDisplayContainer.style.border = '1px solid #e5e7eb';
-    fullHistoryDisplayContainer.style.height = '150px';
-    fullHistoryDisplayContainer.style.overflowY = 'auto';
-    fullHistoryDisplayContainer.style.fontSize = '0.9em';
-    fullHistoryDisplayContainer.style.borderRadius = '8px';
-    historyTabPane.appendChild(fullHistoryDisplayContainer);
-    tabContent.appendChild(historyTabPane);
-
-    tabsContainer.appendChild(tabContent);
-    chatContainer.appendChild(tabsContainer);
-
-    loginButton.addEventListener('click', () =>
-      login(usernameInput.value, passwordInput.value)
-    );
-    signupButton.addEventListener('click', () =>
-      signup(usernameInput.value, passwordInput.value)
-    );
-    setApiKeyButton.addEventListener('click', () =>
-      setApiKey(apiKeyInput.value)
-    );
+    setApiKeyButton.addEventListener('click', () => setApiKey(apiKeyInput.value));
     modelSelect.addEventListener('change', () => setModel(modelSelect.value));
     sendButton.addEventListener('click', handleSendMessage);
-    chatInput.addEventListener(
-      'keypress',
-      (e) => e.key === 'Enter' && handleSendMessage()
-    );
+    chatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleSendMessage());
     loadCaptionsButton.addEventListener('click', fetchAndProcessCaptions);
 
+    chatContainer.querySelectorAll('.tab-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        switchTab(button.dataset.tab);
+        if (button.dataset.tab === 'history' && getToken()) {
+          fetchUserChatHistory(window.currentYouTubeAIVideoId);
+        }
+      });
+    });
+
+    switchTab('chat');
     addMessageToChat('AI', 'Please login or signup to start.', 'ai', true);
   }
 
@@ -486,10 +278,8 @@
     }
 
     if (viewMode.startsWith('fullscreen')) {
-      console.log(
-        'YouTube AI Assistant: In fullscreen mode, UI will not be injected.'
-      );
-      chatContainer.style.display = 'none';
+      console.log('YouTube AI Assistant: In fullscreen mode, UI will not be injected.');
+      chatContainer.classList.remove('visible');
       return;
     }
 
@@ -502,9 +292,7 @@
           parentElement.querySelector('#below #actions');
       }
     } else {
-      parentElement = document.querySelector(
-        'ytd-watch-flexy div#secondary-inner'
-      );
+      parentElement = document.querySelector('ytd-watch-flexy div#secondary-inner');
       if (parentElement) {
         insertBeforeElement = parentElement.firstChild;
       }
@@ -516,46 +304,41 @@
       } else {
         parentElement.appendChild(chatContainer);
       }
-      chatContainer.style.display = 'flex';
+      chatContainer.classList.add('visible');
     } else if (chatContainer) {
-      chatContainer.style.display = 'none';
-      console.warn(
-        'YouTube AI Assistant: Could not find suitable parent to inject UI for view mode:',
-        viewMode
-      );
+      chatContainer.classList.remove('visible');
+      console.warn('YouTube AI Assistant: Could not find suitable parent to inject UI for view mode:', viewMode);
     }
   }
 
   function addMessageToChat(sender, message, type = 'info', isInitial = false) {
     if (!chatHistoryContainer) return;
-    if (
-      !isInitial &&
-      chatHistoryContainer.firstChild?.classList.contains('initial-greeting')
-    ) {
+    if (!isInitial && chatHistoryContainer.firstChild?.classList.contains('initial-greeting')) {
       chatHistoryContainer.innerHTML = '';
     }
 
     const messageDiv = document.createElement('div');
-    messageDiv.classList.add('youtube-ai-chat-message', type);
+    messageDiv.classList.add('message', `message-${type}`);
     if (isInitial) messageDiv.classList.add('initial-greeting');
 
     const senderStrong = document.createElement('strong');
     senderStrong.textContent = `${sender}: `;
     messageDiv.appendChild(senderStrong);
-    messageDiv.append(message);
+    const messageText = document.createElement('span');
+    messageText.textContent = message;
+    messageDiv.appendChild(messageText);
 
-    if (type === 'ai') senderStrong.style.color = 'cornflowerblue';
-    if (type === 'user') senderStrong.style.color = 'mediumseagreen';
-    if (type === 'error') {
-      senderStrong.style.color = 'crimson';
-      messageDiv.style.color = 'crimson';
+    if (type === 'ai' && !isInitial) {
+      const copyButton = document.createElement('button');
+      copyButton.classList.add('button', 'copy-button', 'blue-gradient');
+      copyButton.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 9H11C9.89543 9 9 9.89543 9 11V20C9 21.1046 9.89543 22 11 22H20C21.1046 22 22 21.1046 22 20V11C22 9.89543 21.1046 9 20 9ZM20 20H11V11H20V20ZM7 13H5C3.89543 13 3 12.1046 3 11V4C3 2.89543 3.89543 2 5 2H14C15.1046 2 16 2.89543 16 4V6H13V4H5V11H7V13Z" fill="#ffffff"/>
+      </svg>
+    `;
+      copyButton.addEventListener('click', () => copyToClipboard(message));
+      messageDiv.appendChild(copyButton);
     }
-    if (type === 'info') senderStrong.style.color = 'slateblue';
-    messageDiv.style.padding = '8px';
-    messageDiv.style.borderRadius = '6px';
-    messageDiv.style.marginBottom = '8px';
-    messageDiv.style.backgroundColor =
-      type === 'user' ? '#f0f9ff' : type === 'ai' ? '#f8fafc' : '#fef2f2';
 
     chatHistoryContainer.appendChild(messageDiv);
     chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
@@ -564,7 +347,9 @@
   function addInfoMessage(message) {
     addMessageToChat('System', message, 'info');
   }
+
   function addErrorMessage(message) {
+    alert('Error: ' + message);
     addMessageToChat('Error', message, 'error');
   }
 
@@ -577,22 +362,21 @@
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
-        if (loginContainer) loginContainer.style.display = 'none';
-        if (tabsContainer) tabsContainer.style.display = 'block';
+        loginContainer.classList.add('hidden');
+        tabsContentContainer.classList.remove('hidden');
         fetchModels();
-        if (window.currentYouTubeAIVideoId)
-          fetchChatHistory(window.currentYouTubeAIVideoId);
+        if (window.currentYouTubeAIVideoId) fetchChatHistory(window.currentYouTubeAIVideoId);
         return true;
       } else {
         deleteCookie('token');
-        if (loginContainer) loginContainer.style.display = 'block';
-        if (tabsContainer) tabsContainer.style.display = 'none';
+        loginContainer.classList.remove('hidden');
+        tabsContentContainer.classList.add('hidden');
         return false;
       }
     } catch (error) {
       deleteCookie('token');
-      if (loginContainer) loginContainer.style.display = 'block';
-      if (tabsContainer) tabsContainer.style.display = 'none';
+      loginContainer.classList.remove('hidden');
+      tabsContentContainer.classList.add('hidden');
       return false;
     }
   }
@@ -608,20 +392,19 @@
       if (data.success) {
         setCookie('token', data.token, 7);
         addInfoMessage('Logged in successfully!');
-        loginContainer.style.display = 'none';
-        tabsContainer.style.display = 'block';
+        loginContainer.classList.add('hidden');
+        tabsContentContainer.classList.remove('hidden');
         fetchModels();
-        if (window.currentYouTubeAIVideoId)
-          fetchChatHistory(window.currentYouTubeAIVideoId);
+        if (window.currentYouTubeAIVideoId) fetchChatHistory(window.currentYouTubeAIVideoId);
       } else {
         addErrorMessage('Login failed: ' + data.error);
-        loginContainer.style.display = 'block';
-        tabsContainer.style.display = 'none';
+        loginContainer.classList.remove('hidden');
+        tabsContentContainer.classList.add('hidden');
       }
     } catch (error) {
       addErrorMessage('Login error: ' + error.message);
-      loginContainer.style.display = 'block';
-      tabsContainer.style.display = 'none';
+      loginContainer.classList.remove('hidden');
+      tabsContentContainer.classList.add('hidden');
     }
   }
 
@@ -670,8 +453,7 @@
 
   async function fetchModels() {
     const token = getToken();
-    if (!token) return;
-    if (!modelSelect) return;
+    if (!token || !modelSelect) return;
     try {
       const response = await fetch('http://127.0.0.1:3000/api/models', {
         method: 'GET',
@@ -695,8 +477,7 @@
       }
     } catch (error) {
       addErrorMessage('Error fetching models: ' + error.message);
-      if (modelSelect)
-        modelSelect.innerHTML = '<option value="">Error</option>';
+      if (modelSelect) modelSelect.innerHTML = '<option value="">Error</option>';
     }
   }
 
@@ -726,33 +507,20 @@
 
   async function fetchChatHistory(videoId) {
     const token = getToken();
-    if (!token) return;
-    if (!chatHistoryContainer) return;
+    if (!token || !chatHistoryContainer) return;
 
     try {
-      const response = await fetch(
-        `http://127.0.0.1:3000/api/chat-history/${videoId}`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const response = await fetch(`http://127.0.0.1:3000/api/chat-history/${videoId}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = await response.json();
-      if (
-        chatHistoryContainer.firstChild?.classList.contains('initial-greeting')
-      ) {
+      if (chatHistoryContainer.firstChild?.classList.contains('initial-greeting')) {
         chatHistoryContainer.innerHTML = '';
-      } else if (!isInitialMessagePresent()) {
-        // chatHistoryContainer.innerHTML = '';
       }
-
       if (data.history && data.history.length > 0) {
         data.history.forEach((msg) => {
-          addMessageToChat(
-            msg.sender === 'user' ? 'You' : 'AI',
-            msg.message,
-            msg.sender
-          );
+          addMessageToChat(msg.sender === 'user' ? 'You' : 'AI', msg.message, msg.sender);
         });
       }
     } catch (error) {
@@ -760,52 +528,136 @@
     }
   }
 
-  function isInitialMessagePresent() {
-    return (
-      chatHistoryContainer &&
-      chatHistoryContainer.firstChild?.classList.contains('initial-greeting')
-    );
+  function renderChatHistory(history) {
+    const historyContent = fullHistoryDisplayContainer.querySelector('.history-content');
+    const historyEmpty = fullHistoryDisplayContainer.querySelector('.history-empty');
+    const historyLoading = fullHistoryDisplayContainer.querySelector('.history-loading');
+
+    historyLoading.classList.add('hidden');
+
+    if (!history || history.length === 0) {
+      historyEmpty.classList.remove('hidden');
+      historyContent.classList.add('hidden');
+      historyContent.innerHTML = '';
+      return;
+    }
+
+    historyEmpty.classList.add('hidden');
+    historyContent.classList.remove('hidden');
+    historyContent.innerHTML = '';
+
+    // Group history by video_id
+    const groupedHistory = history.reduce((acc, msg) => {
+      if (!acc[msg.video_id]) {
+        acc[msg.video_id] = {
+          title: msg.video_title || 'Untitled Video',
+          youtube_id: msg.youtube_video_id || null,
+          messages: []
+        };
+      }
+      acc[msg.video_id].messages.push(msg);
+      return acc;
+    }, {});
+
+    // Create expandable list
+    Object.entries(groupedHistory).forEach(([videoId, data]) => {
+      const youtubeVideoId = data.youtube_id || videoId;
+      const details = document.createElement('details');
+      details.classList.add('history-video-group');
+
+      const summary = document.createElement('summary');
+      summary.classList.add('history-video-title');
+      const videoLink = document.createElement('a');
+      videoLink.href = `https://www.youtube.com/watch?v=${youtubeVideoId}`;
+      videoLink.target = '_blank';
+      videoLink.textContent = data.title;
+      videoLink.classList.add('history-video-link');
+      summary.appendChild(videoLink);
+      details.appendChild(summary);
+
+      const messageList = document.createElement('div');
+      messageList.classList.add('history-message-list');
+      data.messages.forEach(msg => {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('history-message', `message-${msg.sender}`);
+        const senderSpan = document.createElement('span');
+        senderSpan.classList.add('history-sender');
+        senderSpan.textContent = `${msg.sender === 'user' ? 'You' : 'AI'}: `;
+        const messageText = document.createElement('span');
+        messageText.textContent = msg.message;
+        messageDiv.appendChild(senderSpan);
+        messageDiv.appendChild(messageText);
+
+        if (msg.sender === 'ai') {
+          const copyButton = document.createElement('button');
+          copyButton.classList.add('button', 'copy-button', 'blue-gradient');
+          copyButton.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 9H11C9.89543 9 9 9.89543 9 11V20C9 21.1046 9.89543 22 11 22H20C21.1046 22 22 21.1046 22 20V11C22 9.89543 21.1046 9 20 9ZM20 20H11V11H20V20ZM7 13H5C3.89543 13 3 12.1046 3 11V4C3 2.89543 3.89543 2 5 2H14C15.1046 2 16 2.89543 16 4V6H13V4H5V11H7V13Z" fill="#ffffff"/>
+          </svg>
+        `;
+          copyButton.addEventListener('click', () => copyToClipboard(msg.message));
+          messageDiv.appendChild(copyButton);
+        }
+
+        const timestampSpan = document.createElement('span');
+        timestampSpan.classList.add('history-timestamp');
+        timestampSpan.textContent = ` (${new Date(msg.timestamp).toLocaleString()})`;
+        messageDiv.appendChild(timestampSpan);
+        messageList.appendChild(messageDiv);
+      });
+
+      details.appendChild(messageList);
+      historyContent.appendChild(details);
+    });
+  }
+
+  async function fetchUserChatHistory(videoId = null) {
+    const token = getToken();
+    if (!token) {
+      addErrorMessage('Please login to view chat history.');
+      fullHistoryDisplayContainer.querySelector('.history-loading').classList.add('hidden');
+      fullHistoryDisplayContainer.querySelector('.history-empty').classList.remove('hidden');
+      return;
+    }
+
+    try {
+      const url = videoId
+        ? `http://127.0.0.1:3000/api/user-chat-history?videoId=${videoId}`
+        : 'http://127.0.0.1:3000/api/user-chat-history';
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      renderChatHistory(data.history || []);
+    } catch (error) {
+      addErrorMessage('Error fetching user chat history: ' + error.message);
+      fullHistoryDisplayContainer.querySelector('.history-loading').classList.add('hidden');
+      fullHistoryDisplayContainer.querySelector('.history-empty').classList.remove('hidden');
+    }
   }
 
   async function fetchAndProcessCaptions() {
     const token = getToken();
     if (!token) return addErrorMessage('Please login first.');
-    if (captionsLoaded && window.currentYouTubeAIVideoId)
-      return addInfoMessage('Data already loaded for this video.');
+    if (captionsLoaded && window.currentYouTubeAIVideoId) return addInfoMessage('Data already loaded for this video.');
 
     addInfoMessage('Loading video data...');
     loadCaptionsButton.disabled = true;
     loadCaptionsButton.textContent = 'Loading...';
 
-    const videoTitle =
-      document
-        .querySelector('title')
-        ?.textContent.trim()
-        .replace(/\s*-\s*YouTube$/, '') || 'No title';
-    const descriptionElement = document.querySelector(
-      '#description span#plain-snippet-text, #description .ytd-expandable-video-description-body-renderer .yt-core-attributed-string'
-    );
-    const videoDescription = descriptionElement
-      ? descriptionElement.textContent.trim()
-      : document
-          .querySelector(
-            '#description yt-formatted-string.ytd-video-secondary-info-renderer'
-          )
-          ?.textContent.trim() || 'No description';
-    const comments = Array.from(
-      document.querySelectorAll('ytd-comment-thread-renderer #content-text')
-    )
-      .slice(0, 15)
-      .map((c) => c.textContent.trim());
+    const videoTitle = document.querySelector('title')?.textContent.trim().replace(/\s*-\s*YouTube$/, '') || 'No title';
+    const descriptionElement = document.querySelector('#description span#plain-snippet-text, #description .ytd-expandable-video-description-body-renderer .yt-core-attributed-string');
+    const videoDescription = descriptionElement ? descriptionElement.textContent.trim() : document.querySelector('#description yt-formatted-string.ytd-video-secondary-info-renderer')?.textContent.trim() || 'No description';
+    const comments = Array.from(document.querySelectorAll('ytd-comment-thread-renderer #content-text')).slice(0, 15).map((c) => c.textContent.trim());
 
     let playerJson;
     try {
       const scripts = Array.from(document.scripts);
       for (const script of scripts) {
         if (script.textContent.includes('ytInitialPlayerResponse')) {
-          const match = script.textContent.match(
-            /ytInitialPlayerResponse\s*=\s*(\{.*?\});(?:var\s챱메타데이터|var\s메타데이터|var\s|\(function\(\)\{var\sytplayer|\s*if\s*\()/s
-          );
+          const match = script.textContent.match(/ytInitialPlayerResponse\s*=\s*(\{.*?\});(?:var\s챱메타데이터|var\s메타데이터|var\s|$$ function\( $$\{var\sytplayer|\s*if\s*\()/s);
           if (match && match[1]) {
             playerJson = JSON.parse(match[1]);
             break;
@@ -822,33 +674,20 @@
       videoTranscript = 'Player response not found.';
     }
 
-    const tracks =
-      playerJson?.captions?.playerCaptionsTracklistRenderer?.captionTracks ||
-      [];
-    let track =
-      tracks.find((t) => t.languageCode === 'en') ||
-      tracks.find((t) => t.baseUrl.includes('lang=en')) ||
-      tracks[0];
+    const tracks = playerJson?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+    let track = tracks.find((t) => t.languageCode === 'en') || tracks.find((t) => t.baseUrl.includes('lang=en')) || tracks[0];
 
     if (!track) {
-      addInfoMessage(
-        'No English captions found. Trying any available or proceeding without.'
-      );
+      addInfoMessage('No English captions found. Trying any available or proceeding without.');
       videoTranscript = 'No captions available.';
     } else {
       try {
         const res = await fetch(track.baseUrl);
-        if (!res.ok)
-          throw new Error(`Captions XML fetch failed: ${res.statusText}`);
+        if (!res.ok) throw new Error(`Captions XML fetch failed: ${res.statusText}`);
         const xml = await res.text();
         const doc = new DOMParser().parseFromString(xml, 'application/xml');
         const lines = Array.from(doc.querySelectorAll('text'))
-          .map((n) =>
-            n.textContent
-              .trim()
-              .replace(/\n/g, ' ')
-              .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
-          )
+          .map((n) => n.textContent.trim().replace(/\n/g, ' ').replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec)))
           .join(' ');
         videoTranscript = lines || ' ';
       } catch (error) {
@@ -857,27 +696,18 @@
       }
     }
 
-    const videoId = await sendDataToBackend(
-      videoTitle,
-      videoTranscript,
-      videoDescription,
-      comments
-    );
+    const videoId = await sendDataToBackend(videoTitle, videoTranscript, videoDescription, comments);
     if (videoId) {
       window.currentYouTubeAIVideoId = videoId;
       captionsLoaded = true;
-      if (
-        videoTranscript.startsWith('No captions') ||
-        videoTranscript.startsWith('Failed to load')
-      ) {
-        addInfoMessage(
-          `Video data sent (captions: ${videoTranscript.split('.')[0]}).`
-        );
+      if (videoTranscript.startsWith('No captions') || videoTranscript.startsWith('Failed to load')) {
+        addInfoMessage(`Video data sent (captions: ${videoTranscript.split('.')[0]}).`);
       } else {
         addInfoMessage('Video data & captions sent to backend.');
       }
       loadCaptionsButton.textContent = 'Data Loaded';
       fetchChatHistory(videoId);
+      fetchRecommendedQuestions(videoId); // Fetch recommended questions after loading video data
     } else {
       resetLoadButton();
       captionsLoaded = false;
@@ -898,26 +728,20 @@
       return null;
     }
     try {
+      const youtubeVideoId = window.currentYouTubePageVideoId || '';
       const response = await fetch('http://127.0.0.1:3000/api/videos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          title,
-          captions: transcript,
-          description,
-          comments
-        })
+        body: JSON.stringify({ title, captions: transcript, description, comments, youtubeVideoId })
       });
       const data = await response.json();
       if (data.success && data.videoId) {
         return data.videoId;
       } else {
-        addErrorMessage(
-          'Backend error: ' + (data.error || 'Failed to send data')
-        );
+        addErrorMessage('Backend error: ' + (data.error || 'Failed to send data'));
         return null;
       }
     } catch (error) {
@@ -954,10 +778,7 @@
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          videoId: window.currentYouTubeAIVideoId,
-          question: query
-        })
+        body: JSON.stringify({ videoId: window.currentYouTubeAIVideoId, question: query })
       });
       const currentThinkingMsg = Array.from(chatHistoryContainer.children).find(
         (el) => el.textContent.includes('AI: Thinking...')
@@ -985,9 +806,7 @@
       addInfoMessage('Attempting to load video data first...');
       await fetchAndProcessCaptions();
       if (!window.currentYouTubeAIVideoId) {
-        addErrorMessage(
-          'Please load video data first using "Load Data" button.'
-        );
+        addErrorMessage('Please load video data first using "Load Data" button.');
         return;
       }
     }
@@ -1001,23 +820,29 @@
     window.currentYouTubeAIVideoId = null;
 
     if (chatHistoryContainer) chatHistoryContainer.innerHTML = '';
-    if (fullHistoryDisplayContainer)
-      fullHistoryDisplayContainer.textContent =
-        'History (feature in development).';
+    if (fullHistoryDisplayContainer) {
+      fullHistoryDisplayContainer.querySelector('.history-content').innerHTML = '';
+      fullHistoryDisplayContainer.querySelector('.history-content').classList.add('hidden');
+      fullHistoryDisplayContainer.querySelector('.history-empty').classList.add('hidden');
+      fullHistoryDisplayContainer.querySelector('.history-loading').classList.remove('hidden');
+    }
+    if (document.querySelector('#youtube-ai-suggestions')) {
+      document.querySelector('#youtube-ai-suggestions').classList.add('hidden');
+      document.querySelector('#youtube-ai-suggestions-list').innerHTML = '';
+    }
 
-    if (getToken() && loginContainer && tabsContainer) {
-      loginContainer.style.display = 'none';
-      tabsContainer.style.display = 'block';
+    if (getToken() && loginContainer && tabsContentContainer) {
+      loginContainer.classList.add('hidden');
+      tabsContentContainer.classList.remove('hidden');
       addMessageToChat('AI', 'New video. Load data to interact.', 'ai', true);
       switchTab('chat');
-    } else if (loginContainer && tabsContainer) {
-      loginContainer.style.display = 'block';
-      tabsContainer.style.display = 'none';
+    } else if (loginContainer && tabsContentContainer) {
+      loginContainer.classList.remove('hidden');
+      tabsContentContainer.classList.add('hidden');
       addMessageToChat('AI', 'New video. Please login to start.', 'ai', true);
     }
     if (loadCaptionsButton) resetLoadButton();
   }
-
   function observeViewModeChanges() {
     const flexyElement = document.querySelector('ytd-watch-flexy');
     if (!flexyElement) return;
@@ -1028,49 +853,27 @@
       let significantChange = false;
 
       for (const mutation of mutations) {
-        if (
-          mutation.type === 'attributes' &&
-          (mutation.attributeName === 'theater' ||
-            mutation.attributeName === 'fullscreen_' ||
-            mutation.attributeName === 'fullscreen')
-        ) {
+        if (mutation.type === 'attributes' && (mutation.attributeName === 'theater' || mutation.attributeName === 'fullscreen_' || mutation.attributeName === 'fullscreen')) {
           significantChange = true;
           break;
         }
       }
 
-      if (
-        document.fullscreenElement &&
-        getCurrentViewMode().startsWith('fullscreen')
-      ) {
+      if (document.fullscreenElement && getCurrentViewMode().startsWith('fullscreen')) {
         significantChange = true;
-      } else if (
-        !document.fullscreenElement &&
-        getCurrentViewMode() !== 'default' &&
-        getCurrentViewMode() !== 'theater'
-      ) {
+      } else if (!document.fullscreenElement && getCurrentViewMode() !== 'default' && getCurrentViewMode() !== 'theater') {
         significantChange = true;
       }
 
-      if (
-        newPageVideoId &&
-        window.currentYouTubePageVideoId !== newPageVideoId
-      ) {
-        console.log(
-          'Observer: Video ID changed from',
-          window.currentYouTubePageVideoId,
-          'to',
-          newPageVideoId
-        );
+      if (newPageVideoId && window.currentYouTubePageVideoId !== newPageVideoId) {
+        console.log('Observer: Video ID changed from', window.currentYouTubePageVideoId, 'to', newPageVideoId);
         window.currentYouTubePageVideoId = newPageVideoId;
         setTimeout(() => {
           resetForNewVideo();
           injectChatUI();
         }, 300);
       } else if (significantChange) {
-        console.log(
-          'Observer: View mode attribute changed (theater/fullscreen). Re-injecting UI.'
-        );
+        console.log('Observer: View mode attribute changed (theater/fullscreen). Re-injecting UI.');
         setTimeout(injectChatUI, 300);
       }
     });
@@ -1090,66 +893,55 @@
     document.addEventListener('yt-navigate-finish', () => {
       console.log('yt-navigate-finish detected.');
       const flexy = document.querySelector('ytd-watch-flexy');
-      if (flexy)
-        window.currentYouTubePageVideoId = flexy.getAttribute('video-id');
+      if (flexy) window.currentYouTubePageVideoId = flexy.getAttribute('video-id');
 
       setTimeout(async () => {
         resetForNewVideo();
         injectChatUI();
         observeViewModeChanges();
 
-        if (getToken() && !window.currentYouTubeAIVideoId) {
+        if (getToken()) {
           const isValid = await verifyToken();
-          if (isValid) {
-          } else if (loginContainer && tabsContainer) {
-            loginContainer.style.display = 'block';
-            tabsContainer.style.display = 'none';
-            addMessageToChat(
-              'AI',
-              'Session issue. Please login again.',
-              'ai',
-              true
-            );
+          if (!isValid && loginContainer && tabsContentContainer) {
+            loginContainer.classList.remove('hidden');
+            tabsContentContainer.classList.add('hidden');
+            addMessageToChat('AI', 'Session issue. Please login again.', 'ai', true);
+          } else {
+            fetchUserChatHistory(window.currentYouTubeAIVideoId); // Fetch history on page load if logged in
           }
-        } else if (!getToken() && loginContainer && tabsContainer) {
-          loginContainer.style.display = 'block';
-          tabsContainer.style.display = 'none';
+        } else if (loginContainer && tabsContentContainer) {
+          loginContainer.classList.remove('hidden');
+          tabsContentContainer.classList.add('hidden');
         }
       }, 500);
     });
 
     if (getToken()) {
       const isValid = await verifyToken();
-      if (!isValid && loginContainer && tabsContainer) {
-        loginContainer.style.display = 'block';
-        tabsContainer.style.display = 'none';
+      if (!isValid && loginContainer && tabsContentContainer) {
+        loginContainer.classList.remove('hidden');
+        tabsContentContainer.classList.add('hidden');
         addMessageToChat('AI', 'Session expired. Please login.', 'ai', true);
+      } else {
+        fetchUserChatHistory(window.currentYouTubeAIVideoId); // Initial fetch if logged in
       }
-    } else if (loginContainer && tabsContainer) {
-      loginContainer.style.display = 'block';
-      tabsContainer.style.display = 'none';
+    } else if (loginContainer && tabsContentContainer) {
+      loginContainer.classList.remove('hidden');
+      tabsContentContainer.classList.add('hidden');
     }
   }
 
   const checkPageReady = () => {
-    if (
-      document.querySelector('ytd-watch-flexy #secondary-inner') ||
-      document.querySelector('ytd-watch-flexy #primary-inner')
-    ) {
+    if (document.querySelector('ytd-watch-flexy #secondary-inner') || document.querySelector('ytd-watch-flexy #primary-inner')) {
       initialize();
     } else if (attempts++ < 50) {
       setTimeout(checkPageReady, 200);
     } else {
-      console.warn(
-        'YouTube AI Assistant: Key elements not found. Assistant may not load.'
-      );
+      console.warn('YouTube AI Assistant: Key elements not found. Assistant may not load.');
     }
   };
   let attempts = 0;
-  if (
-    document.readyState === 'complete' ||
-    document.readyState === 'interactive'
-  ) {
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
     checkPageReady();
   } else {
     document.addEventListener('DOMContentLoaded', checkPageReady);

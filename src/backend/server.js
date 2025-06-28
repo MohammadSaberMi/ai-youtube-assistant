@@ -40,6 +40,7 @@ const db = new sqlite3.Database('./database.db', (err) => {
       // Videos table
       db.run(`CREATE TABLE IF NOT EXISTS videos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        youtube_video_id TEXT,
         title TEXT DEFAULT '',
         description TEXT DEFAULT '',
         captions TEXT DEFAULT '',
@@ -110,7 +111,7 @@ app.post('/api/signup', async (req, res) => {
 
   try {
     const hashedPassword = await hashPassword(password);
-    db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword], function(err) {
+    db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword], function (err) {
       if (err) {
         console.error('Error creating user:', err.message);
         return res.status(500).json({ error: 'Failed to create user' });
@@ -155,7 +156,7 @@ app.post('/api/set-api-key', authenticateToken, (req, res) => {
     return res.status(400).json({ error: 'API key is required' });
   }
 
-  db.run('UPDATE users SET openrouter_api_key = ? WHERE id = ?', [apiKey, req.user.userId], function(err) {
+  db.run('UPDATE users SET openrouter_api_key = ? WHERE id = ?', [apiKey, req.user.userId], function (err) {
     if (err) {
       console.error('Error updating API key:', err.message);
       return res.status(500).json({ error: 'Failed to update API key' });
@@ -196,7 +197,7 @@ app.post('/api/set-model', authenticateToken, (req, res) => {
     return res.status(400).json({ error: 'Model is required' });
   }
 
-  db.run('UPDATE users SET selected_model = ? WHERE id = ?', [model, req.user.userId], function(err) {
+  db.run('UPDATE users SET selected_model = ? WHERE id = ?', [model, req.user.userId], function (err) {
     if (err) {
       console.error('Error updating selected model:', err.message);
       return res.status(500).json({ error: 'Failed to update selected model' });
@@ -205,16 +206,15 @@ app.post('/api/set-model', authenticateToken, (req, res) => {
   });
 });
 
-// **Save Video Data Endpoint**
 app.post('/api/videos', authenticateToken, (req, res) => {
-  const { title = '', description = '', captions = '', comments = [] } = req.body;
+  const { title = '', description = '', captions = '', comments = [], youtubeVideoId = '' } = req.body;
 
   if (!Array.isArray(comments)) {
     return res.status(400).json({ error: 'Comments must be an array' });
   }
 
-  const sqlVideo = 'INSERT INTO videos (title, description, captions) VALUES (?, ?, ?)';
-  db.run(sqlVideo, [title || '', description || '', captions || ''], function(err) {
+  const sqlVideo = 'INSERT INTO videos (youtube_video_id, title, description, captions) VALUES (?, ?, ?, ?)';
+  db.run(sqlVideo, [youtubeVideoId, title || '', description || '', captions || ''], function (err) {
     if (err) {
       console.error('Error inserting video:', err.message);
       return res.status(500).json({ error: 'Failed to save video data' });
@@ -229,7 +229,7 @@ app.post('/api/videos', authenticateToken, (req, res) => {
     const sqlComment = 'INSERT INTO comments (video_id, comment) VALUES (?, ?)';
     const commentPromises = comments.map(comment => {
       return new Promise((resolve, reject) => {
-        db.run(sqlComment, [videoId, comment || ''], function(err) {
+        db.run(sqlComment, [videoId, comment || ''], function (err) {
           if (err) reject(err);
           else resolve(this.lastID);
         });
@@ -320,6 +320,108 @@ app.get('/api/chat-history/:videoId', authenticateToken, (req, res) => {
     }
     res.json({ history: rows });
   });
+});
+
+app.get('/api/user-chat-history', authenticateToken, (req, res) => {
+  const { videoId } = req.query;
+
+  let query = `
+    SELECT ch.id, ch.video_id, ch.message, ch.sender, ch.timestamp, v.title AS video_title, v.youtube_video_id
+    FROM chat_history ch
+    JOIN videos v ON ch.video_id = v.id
+    WHERE ch.user_id = ?
+  `;
+  const params = [req.user.userId];
+
+  if (videoId) {
+    query += ' AND ch.video_id = ?';
+    params.push(videoId);
+  }
+
+  query += ' ORDER BY ch.timestamp ASC';
+
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      console.error('Error fetching user chat history:', err.message);
+      return res.status(500).json({ error: 'Failed to fetch user chat history' });
+    }
+    res.json({ history: rows });
+  });
+});
+
+// **Get Recommended Questions Endpoint**
+app.get('/api/recommended-questions/:videoId', authenticateToken, async (req, res) => {
+  const { videoId } = req.params;
+
+  if (!videoId) {
+    return res.status(400).json({ error: 'Missing videoId' });
+  }
+
+  try {
+    const user = await new Promise((resolve, reject) => {
+      db.get('SELECT openrouter_api_key, selected_model FROM users WHERE id = ?', [req.user.userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!user || !user.openrouter_api_key || !user.selected_model) {
+      return res.status(400).json({ error: 'API key or selected model not set' });
+    }
+
+    const videoData = await new Promise((resolve, reject) => {
+      db.get('SELECT title, description, captions FROM videos WHERE id = ?', [videoId], (err, row) => {
+        if (err) reject(err);
+        else if (!row) reject(new Error('Video not found'));
+        else resolve(row);
+      });
+    });
+
+    const commentsData = await new Promise((resolve, reject) => {
+      db.all('SELECT comment FROM comments WHERE video_id = ?', [videoId], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows.map(row => row.comment));
+      });
+    });
+
+    const prompt = `Video Title: ${videoData.title || 'Not available.'}
+      Description: ${videoData.description || 'Not available.'}
+      Captions: ${videoData.captions || 'Not available.'}
+      Comments: ${commentsData.length > 0 ? commentsData.join('\n') : 'No comments available.'}
+
+      Based on the video information above, generate a list of 3-5 concise, relevant questions that a user might want to ask about the video content. Return the questions as a JSON array of strings. For example:
+      ["What is the main topic of the video?", "Who is the target audience?", "What are the key points discussed?"]`;
+
+    const llmResponse = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+      model: user.selected_model,
+      messages: [{ role: 'user', content: prompt }],
+      // response_format: { type: 'json_object' }
+    }, {
+      headers: {
+        'Authorization': `Bearer ${user.openrouter_api_key}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (llmResponse.data && llmResponse.data.choices && llmResponse.data.choices.length > 0 && llmResponse.data.choices[0].message) {
+      const questions = llmResponse.data.choices[0].message.content;
+      try {
+        const parsedQuestions = JSON.parse(questions);
+        if (Array.isArray(parsedQuestions)) {
+          res.json({ questions: parsedQuestions });
+        } else {
+          res.status(500).json({ error: 'Invalid response format from LLM' });
+        }
+      } catch (error) {
+        res.status(500).json({ error: 'Failed to parse LLM response: ' + error.message });
+      }
+    } else {
+      res.status(500).json({ error: 'Failed to get a valid response from LLM' });
+    }
+  } catch (error) {
+    console.error('Error generating recommended questions:', error);
+    res.status(500).json({ error: 'Failed to generate recommended questions' });
+  }
 });
 
 // Start the server
