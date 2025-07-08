@@ -104,8 +104,8 @@
 
 /* Input Fields */
 .input-field {
-  width: calc(100% - 20px);
-  padding: 5px;
+  width: calc(100% - 30px);
+  padding: 4px;
   border: 2px solid #d1d5db;
   border-radius: 14px;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -124,7 +124,7 @@
 
 .chat-input {
   padding-top: 5px;
-  font-size: 1.2em;
+  font-size: 1.3em;
   flex-grow: 1;
 }
 
@@ -146,7 +146,7 @@
 
 /* Buttons */
 .button {
-  padding: 10px;
+  padding: 6px 8px;
   color: #fafafa;
   border: none;
   border-radius: 8px;
@@ -500,7 +500,7 @@ select:focus {
 
 /* copy btn */
 .copy-button {
-  margin-top: 10px;
+  margin-top: 15px;
   margin-left: 10px;
   padding: 3px;
   font-size: 0.85em;
@@ -567,9 +567,10 @@ select:focus {
   padding: 6px 12px;
   font-size: 0.9em;
   border-radius: 4px;
-  background: linear-gradient(90deg, #60a5fa, #3b82f6);
-  color: #ffffff;
-  border: none;
+  border: 2px solid #61def1 !important;
+  /*background: linear-gradient(90deg, #60a5fa, #3b82f6);*/
+  background: #f5f5f5 !important;
+  color: #2b2a2a;
   cursor: pointer;
   max-width: fit-content; /* Limit button width */
   white-space: nowrap; /* Prevent text wrapping */
@@ -578,9 +579,9 @@ select:focus {
   flex-shrink: 0; /* Prevent buttons from shrinking */
 }
 
-.suggestion-button:hover {
+/*.suggestion-button:hover {
   background: linear-gradient(90deg, #3b82f6, #2563eb);
-}
+}*/
 
 .suggestions-container.hidden {
   display: none;
